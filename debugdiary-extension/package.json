@@ -1,0 +1,87 @@
+{
+    "name": "debugdiary",
+    "displayName": "DebugDiary",
+    "description": "Save bug fixes to your personal AI error journal",
+    "version": "0.0.1",
+    "publisher": "debugdiary",
+    "repository": "https://github.com/debugdiary/debugdiary",
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "debugdiary.saveError",
+                "title": "DebugDiary: Save Error to Journal"
+            },
+            {
+                "command": "debugdiary.connect",
+                "title": "DebugDiary: Connect Account"
+            },
+            {
+                "command": "debugdiary.checkDejavu",
+                "title": "DebugDiary: Check Déjà Vu"
+            },
+            {
+                "command": "debugdiary.openDashboard",
+                "title": "DebugDiary: Open Dashboard"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "command": "debugdiary.saveError",
+                    "when": "editorHasSelection",
+                    "group": "debugdiary"
+                },
+                {
+                    "command": "debugdiary.checkDejavu",
+                    "when": "editorHasSelection",
+                    "group": "debugdiary"
+                }
+            ],
+            "terminal/context": [
+                {
+                    "command": "debugdiary.saveError",
+                    "group": "debugdiary"
+                }
+            ]
+        },
+        "configuration": {
+            "title": "DebugDiary",
+            "properties": {
+                "debugdiary.apiKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Your DebugDiary API key"
+                },
+                "debugdiary.apiUrl": {
+                    "type": "string",
+                    "default": "http://localhost:3000",
+                    "description": "DebugDiary API URL"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "package": "vsce package"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.85.0",
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0",
+        "@vscode/vsce": "^2.22.0"
+    },
+    "dependencies": {
+        "axios": "^1.6.0"
+    }
+}
