@@ -4,11 +4,11 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
 export async function DELETE(req: Request) {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) return new Response('Unauthorized', { status: 401 })
+    if (!(session?.user as any)?.id) return new Response('Unauthorized', { status: 401 })
 
     try {
         await prisma.user.delete({
-            where: { id: session.user.id }
+            where: { id: (session?.user as any).id }
         })
 
         return new Response('Account deleted', { status: 200 })

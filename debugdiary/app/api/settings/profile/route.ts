@@ -4,14 +4,14 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
 export async function PATCH(req: Request) {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) return new Response('Unauthorized', { status: 401 })
+    if (!(session?.user as any)?.id) return new Response('Unauthorized', { status: 401 })
 
     try {
         const { name } = await req.json()
         if (!name) return new Response('Bad Request', { status: 400 })
 
         const updatedUser = await prisma.user.update({
-            where: { id: session.user.id },
+            where: { id: (session?.user as any).id },
             data: { name }
         })
 

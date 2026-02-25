@@ -5,10 +5,10 @@ import crypto from 'crypto'
 
 export async function GET() {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) return new Response('Unauthorized', { status: 401 })
+    if (!(session?.user as any)?.id) return new Response('Unauthorized', { status: 401 })
 
     const keys = await prisma.apiKey.findMany({
-        where: { userId: session.user.id },
+        where: { userId: (session?.user as any).id },
         orderBy: { createdAt: 'desc' }
     })
     return Response.json(keys)
@@ -16,7 +16,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) return new Response('Unauthorized', { status: 401 })
+    if (!(session?.user as any)?.id) return new Response('Unauthorized', { status: 401 })
 
     const { name } = await req.json()
     if (!name) return new Response('Bad Request', { status: 400 })
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     const apiKey = await prisma.apiKey.create({
         data: {
-            userId: session.user.id,
+            userId: (session?.user as any).id,
             label: name,
             key
         }
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) return new Response('Unauthorized', { status: 401 })
+    if (!(session?.user as any)?.id) return new Response('Unauthorized', { status: 401 })
 
     const url = new URL(req.url)
     const id = url.searchParams.get('id')
@@ -45,7 +45,7 @@ export async function DELETE(req: Request) {
     await prisma.apiKey.deleteMany({
         where: {
             id,
-            userId: session.user.id
+            userId: (session?.user as any).id
         }
     })
 
