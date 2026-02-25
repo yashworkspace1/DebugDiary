@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Temporary files and scratch scripts
+*.log
+*.vsix
+out*.txt
+error.txt
+ts_err.txt
+requirements.txt
+check-db.js
+check-similarity.js
+fix-stuck-entries.js
+backfill-embeddings.js
