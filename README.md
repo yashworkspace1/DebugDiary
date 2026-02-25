@@ -1,52 +1,245 @@
+<div align="center">
+
 # DebugDiary
 
-> Stack Overflow helps strangers.  
-> DebugDiary helps your past self.
+![Next.js](https://img.shields.io/badge/Next.js_14-black?style=for-the-badge&logo=next.js)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini_2.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma)
+![Vercel](https://img.shields.io/badge/Vercel-black?style=for-the-badge&logo=vercel)
+![VS Code](https://img.shields.io/badge/VS_Code_Extension-007ACC?style=for-the-badge&logo=visualstudiocode)
+
+</div>
+
+---
+
+<div align="center">
+
+> **Stack Overflow helps strangers.**  
+> **DebugDiary helps your past self.**
+
+</div>
+
+---
 
 ## The Problem
-Developers solve the same bugs repeatedly.
-No personal, searchable, AI-enriched log
-of your own debugging history exists.
-ChatGPT forgets. Notion is manual.
-Stack Overflow helps strangers, not you.
+
+Every developer has been here:
+
+You spend 2 hours debugging an error.  
+You fix it. You move on.
+
+Three months later — same error.  
+You spend 2 hours again.
+
+ChatGPT forgets everything between sessions.  
+Notion is manual and unsearchable.  
+Stack Overflow helps people you've never met.  
+Sentry monitors production — not your learning.
+
+**There is no tool that remembers YOUR debugging history and surfaces it when you need it.**
+
+DebugDiary is that tool.
+
+---
 
 ## What It Does
-- Paste error + fix → Gemini AI enriches it
-- Semantic search finds errors by meaning
-- Déjà Vu detector surfaces past fixes
-- VS Code extension — never leave your editor
+
+Four core engines working together:
+
+### ⚡ Déjà Vu Detection
+Paste an error you're debugging. Before you waste time, DebugDiary checks your entire history for similar errors. If you've seen it before — it tells you instantly, with your exact fix from last time.
+
+### 🔍 Semantic Search
+Search your journal by meaning, not keywords. Type "that weird CORS thing in Express" and find the entry — even if those exact words aren't in it. Powered by Gemini embeddings and cosine similarity.
+
+### ✦ AI Enrichment
+Every entry gets automatically enriched: plain-English summary, root cause explanation, auto-tags, language detection, difficulty rating. You paste error + fix. Gemini does the rest.
+
+### � VS Code Extension
+Right-click any error in your editor or terminal. Save it in two inputs without leaving VS Code. Déjà Vu fires as a native VS Code notification — your past fix appears before you've opened a browser tab.
+
+---
+
+## Demo
+
+🌐 **Live:** [https://debugdiary-production.vercel.app](https://debugdiary-production.vercel.app)  
+
+Demo credentials:  
+Email:    `dev@debugdiary.com`  
+Password: `demo2026`
+
+---
 
 ## Tech Stack
-Next.js 14 · Supabase PostgreSQL · Prisma
-Google Gemini 2.5 Flash · NextAuth.js
-Tailwind · shadcn/ui · VS Code Extension API
 
-## Live Demo
-URL: https://debugdiary-production.vercel.app
-Login: dev@debugdiary.com / demo2026
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 14 (App Router) |
+| Database | Supabase PostgreSQL |
+| ORM | Prisma |
+| AI | Google Gemini 2.5 Flash |
+| Embeddings | Gemini Embedding 1 |
+| Auth | NextAuth.js |
+| Styling | Tailwind CSS + shadcn/ui |
+| Deployment | Vercel |
+| Extension | VS Code Extension API |
 
-## Run Locally
+---
+
+## Screenshots
+
+> Dashboard — error patterns at a glance
+
+> New Entry — Déjà Vu banner firing
+
+> Entry Detail — AI enrichment displayed
+
+> VS Code Extension — notification in editor
+
+*(Add actual screenshots after deploy)*
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- Supabase account (free tier works)
+- Google AI Studio API key (free tier)
+
+### Installation
 ```bash
-git clone https://github.com/your-username/debugdiary
+# Clone the repo
+git clone https://github.com/yashworkspace1/DebugDiary.git
 cd debugdiary
+
+# Install dependencies
 npm install
+
+# Set up environment variables
 cp .env.example .env.local
-# fill in your keys
-npx prisma migrate dev
-npx prisma db seed
-npm run dev
 ```
 
+### Environment Variables
+
+Create `.env.local` with:
+```env
+DATABASE_URL="your_supabase_pooled_url"
+DIRECT_URL="your_supabase_direct_url"
+GEMINI_API_KEY="your_gemini_api_key"
+NEXTAUTH_SECRET="your_random_secret"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+### Database Setup
+```bash
+# Run migrations
+npx prisma migrate dev
+
+# Seed demo data
+npx prisma db seed
+```
+
+### Run Locally
+```bash
+npm run dev
+# Open http://localhost:3000
+```
+
+---
+
 ## VS Code Extension
-Install: `debugdiary-0.0.1.vsix`
-Connect: `Ctrl+Shift+P` → `DebugDiary: Connect`
-API Key: `https://debugdiary-production.vercel.app/settings/api-keys`
 
-## Why It's Different
-**Sentry** = production monitoring for teams
-**Notion** = too general, fully manual
-**Stack Overflow** = strangers' solutions
-**ChatGPT** = forgets everything
-**DebugDiary** = YOUR history, searchable by meaning, with AI context
+### Install
 
-Built solo for VoidHack 2026 · 6 days
+1. Download `debugdiary-0.0.1.vsix`
+2. VS Code → Extensions → `...` → Install from VSIX
+
+### Connect
+`Ctrl/Cmd + Shift + P`
+→ `DebugDiary: Connect Account`
+→ Paste your API key
+
+Get your API key at:
+`[your-app-url]/settings/api-keys`
+
+### Usage
+
+| Action | How |
+|--------|-----|
+| Save error | Select text → Right-click → Save to DebugDiary |
+| Check Déjà Vu | Select error → `Ctrl+Shift+P` → Check Déjà Vu |
+| Open Dashboard | Click DebugDiary in status bar |
+
+---
+
+## Project Structure
+```text
+debugdiary/
+├── app/
+│   ├── (auth)/          # Login, signup pages
+│   ├── (app)/           # Dashboard, entries, search
+│   └── api/             # All API routes
+├── components/          # Reusable UI components
+├── lib/
+│   ├── gemini.ts        # AI enrichment + embeddings
+│   ├── prisma.ts        # Database client
+│   └── badges.ts        # Color config
+├── prisma/
+│   ├── schema.prisma    # Database schema
+│   └── seed.ts          # Demo data
+└── debugdiary-extension/ # VS Code extension
+    └── src/
+        ├── extension.ts  # Commands + activation
+        ├── api.ts        # API calls to backend
+        └── auth.ts       # Key storage
+```
+
+---
+
+## How Déjà Vu Works
+
+1. User pastes error text
+2. Gemini generates 768-dim embedding
+3. Compare against all stored embeddings using cosine similarity
+4. If similarity > 0.82:
+   - Surface matched entry with fix
+   - User sees their exact solution from weeks or months ago
+
+No vector database needed — cosine similarity computed in JavaScript. Fast enough for personal use.
+
+---
+
+## Competitive Landscape
+
+| Tool | Purpose | Personal History | Semantic Search | Déjà Vu |
+|------|---------|-----------------|-----------------|---------|
+| Sentry | Production monitoring | ❌ | ❌ | ❌ |
+| Stack Overflow | Community Q&A | ❌ | ❌ | ❌ |
+| ChatGPT | General AI | ❌ | ❌ | ❌ |
+| Notion | Manual notes | ✅ | ❌ | ❌ |
+| **DebugDiary** | **Personal journal** | **✅** | **✅** | **✅** |
+
+---
+
+## Roadmap
+
+- [ ] Team mode — shared error library
+- [ ] GitHub integration — auto-log from PRs
+- [ ] Weekly digest — "Your top errors this week"
+- [ ] Error trend alerts — "You're hitting more TypeErrors lately"
+- [ ] Public profiles — share your debug patterns
+
+---
+
+## Built For
+
+VoidHack 2026
+
+---
+
+## License
+
+MIT — use it, fork it, improve it.
