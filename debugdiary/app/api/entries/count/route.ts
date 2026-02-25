@@ -4,10 +4,10 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
 export async function GET() {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) return new Response('Unauthorized', { status: 401 })
+    if (!(session?.user as any)?.id) return new Response('Unauthorized', { status: 401 })
 
     const count = await prisma.entry.count({
-        where: { userId: session.user.id }
+        where: { userId: (session?.user as any).id }
     })
 
     return Response.json({ count })
