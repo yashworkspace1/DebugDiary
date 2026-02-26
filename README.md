@@ -63,7 +63,7 @@ Right-click any error in your editor or terminal. Save it in two inputs without 
 
 ## Demo
 
-🌐 **Live:** [https://debugdiary-production.vercel.app](https://debugdiary-production.vercel.app)  
+🌐 **Live:** https://debugdiary.vercel.app/ 
 
 Demo credentials:  
 Email:    `dev@debugdiary.com`  
