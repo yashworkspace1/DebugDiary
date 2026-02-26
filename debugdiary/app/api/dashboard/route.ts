@@ -135,7 +135,7 @@ export async function GET(req: Request) {
         activityGrid
     }, {
         headers: {
-            'Cache-Control': 's-maxage=60, stale-while-revalidate=30'
+            'Cache-Control': 'no-store, no-cache, must-revalidate'
         }
     })
 }
