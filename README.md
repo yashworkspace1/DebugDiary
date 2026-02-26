@@ -75,7 +75,7 @@ Password: `demo2026`
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Next.js 14 (App Router) |
+| Framework | Next.js 16 (App Router) |
 | Database | Supabase PostgreSQL |
 | ORM | Prisma |
 | AI | Google Gemini 2.5 Flash |
