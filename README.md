@@ -169,7 +169,9 @@ npm run dev
 → Paste your API key
 
 Get your API key at:
-`[your-app-url]/settings/api-keys`
+`(https://debugdiary.vercel.app/dashboard)/settings/api-keys`
+
+**Note: Login with your own credentials and id to get your own api key**
 
 ### Usage
 
