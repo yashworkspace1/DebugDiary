@@ -67,7 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
         const selectedText = editor?.document.getText(editor.selection) || ''
 
         const errorText = await vscode.window.showInputBox({
-            title: 'Save to DebugDiary (1/3)',
+            title: 'Save to DebugDiary (1/2)',
             prompt: 'Error message',
             value: selectedText,
             placeHolder: 'TypeError: Cannot read...',
@@ -95,7 +95,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         const fixText = await vscode.window.showInputBox({
-            title: 'Save to DebugDiary (2/3)',
+            title: 'Save to DebugDiary (2/2)',
             prompt: 'What fixed it?',
             placeHolder: 'Added || [] fallback...',
             ignoreFocusOut: true
@@ -103,14 +103,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         if (!fixText) return
 
-        let codeSnippet = await vscode.window.showInputBox({
-            title: 'Save to DebugDiary (3/3)',
-            prompt: 'Code snippet (Optional - Hit Escape to skip)',
-            value: selectedText && selectedText !== errorText ? selectedText : '',
-            placeHolder: 'Paste the breaking code block here...',
-            ignoreFocusOut: true
-        })
-        if (codeSnippet === undefined) codeSnippet = '' // user skipped
+        const codeSnippet = selectedText && selectedText !== errorText ? selectedText : undefined
         const contextStr = vscode.workspace.workspaceFolders?.[0]?.name
 
         vscode.window.withProgress({

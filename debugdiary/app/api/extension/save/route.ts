@@ -23,7 +23,8 @@ export async function POST(req: Request) {
             source: 'vscode',
             // Truncate to first 60 chars for a default summary until AI enriches
             summary: errorText.length > 60 ? errorText.substring(0, 60) + '...' : errorText,
-            embedding: [] // Start empty, background job will populate
+            embedding: [], // Start empty, background job will populate
+            aiEnriched: false
         }
     })
 
@@ -42,5 +43,5 @@ export async function POST(req: Request) {
         })
         .catch(console.error)
 
-    return Response.json({ success: true, entryId: entry.id })
+    return Response.json({ ...entry, success: true, entryId: entry.id })
 }
