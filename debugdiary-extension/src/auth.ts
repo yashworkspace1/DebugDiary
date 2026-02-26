@@ -12,7 +12,7 @@ export async function setApiKey(key: string): Promise<void> {
 
 export function getApiUrl(): string {
     const config = vscode.workspace.getConfiguration('debugdiary')
-    return config.get<string>('apiUrl') || 'https://debugdiary-production.vercel.app'
+    return config.get<string>('apiUrl') || 'https://debugdiary.vercel.app'
 }
 
 export function isConnected(): boolean {

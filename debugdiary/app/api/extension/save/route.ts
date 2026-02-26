@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { authenticateExtension } from '../auth'
+import { enrichEntry, generateEmbedding } from '@/lib/gemini'
 
 export async function POST(req: Request) {
     const user = await authenticateExtension(req)
@@ -27,13 +28,19 @@ export async function POST(req: Request) {
     })
 
     // Trigger background enrichment silently
-    try {
-        fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/entries/${entry.id}/enrich`, {
-            method: 'POST'
-        }).catch(err => console.error("Enrichment trigger failed:", err))
-    } catch {
-        // Ignore fetch errors, let background fail gracefully
-    }
+    enrichEntry(errorText, fixText, codeSnippet)
+        .then(async (enriched) => {
+            const embedding = await generateEmbedding(errorText + ' ' + fixText)
+            await prisma.entry.update({
+                where: { id: entry.id },
+                data: {
+                    ...enriched,
+                    embedding: embedding,
+                    aiEnriched: true
+                }
+            })
+        })
+        .catch(console.error)
 
     return Response.json({ success: true, entryId: entry.id })
 }
