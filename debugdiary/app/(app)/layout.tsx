@@ -13,6 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [entryCount, setEntryCount] = useState<number | null>(null)
 
     useEffect(() => {
+        setEntryCount(null)
         fetch('/api/entries/count')
             .then(res => {
                 if (!res.ok) throw new Error('Not authorized')
@@ -24,7 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 }
             })
             .catch(() => { })
-    }, [])
+    }, [session?.user?.email])
 
     const isCurrent = (path: string) => pathname === path
 

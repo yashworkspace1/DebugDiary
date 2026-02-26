@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 import { Activity, BookOpen, Bug, Code2, Sparkles, AlertCircle, ArrowRight, Flame } from "lucide-react"
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis } from 'recharts'
 import { errorTypeColors, languageColors } from "@/lib/badges"
@@ -44,11 +45,15 @@ const HeatmapCell = ({ date, count, colIndex }: { date: string, count: number, c
 }
 
 export default function DashboardPage() {
+    const { data: session } = useSession()
     const [data, setData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
+        setData(null)
+        setLoading(true)
+        setError(null)
         fetch('/api/dashboard')
             .then(res => {
                 if (!res.ok) throw new Error("Failed to load dashboard")
@@ -62,7 +67,7 @@ export default function DashboardPage() {
                 setError(e.message)
                 setLoading(false)
             })
-    }, [])
+    }, [session?.user?.email])
 
     if (loading) {
         return (
