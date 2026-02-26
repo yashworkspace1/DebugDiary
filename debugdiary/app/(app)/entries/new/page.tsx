@@ -82,6 +82,7 @@ export default function NewEntryPage() {
             addToast("Saved! AI is enriching...", "success")
 
             setTimeout(() => {
+                router.refresh()
                 router.push(`/entries/${data.id}`)
             }, 1500)
         } catch (err) {
@@ -298,10 +299,10 @@ export default function NewEntryPage() {
                         onClick={handleSubmit}
                         disabled={loading || success}
                         className={`w-full py-4 rounded-xl font-syne font-bold text-base transition-all flex items-center justify-center gap-2 ${success
-                                ? "bg-green-500 text-white"
-                                : loading
-                                    ? "bg-blue/70 text-white cursor-not-allowed"
-                                    : "bg-blue hover:bg-blue/90 text-white shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]"
+                            ? "bg-green-500 text-white"
+                            : loading
+                                ? "bg-blue/70 text-white cursor-not-allowed"
+                                : "bg-blue hover:bg-blue/90 text-white shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]"
                             }`}
                     >
                         {success ? (

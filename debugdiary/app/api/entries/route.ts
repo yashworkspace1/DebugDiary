@@ -20,7 +20,22 @@ export async function GET(req: Request) {
             ...(lang && { language: lang }),
             ...(tag && { tags: { has: tag } })
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        select: {
+            id: true,
+            errorText: true,
+            fixText: true,
+            summary: true,
+            language: true,
+            framework: true,
+            errorType: true,
+            tags: true,
+            difficulty: true,
+            aiEnriched: true,
+            source: true,
+            createdAt: true,
+            updatedAt: true
+        }
     })
 
     return Response.json(entries)

@@ -8,7 +8,26 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const { id } = await params
     const entry = await prisma.entry.findUnique({
-        where: { id }
+        where: { id },
+        select: {
+            id: true,
+            errorText: true,
+            fixText: true,
+            codeSnippet: true,
+            context: true,
+            summary: true,
+            whyItHappens: true,
+            language: true,
+            framework: true,
+            errorType: true,
+            tags: true,
+            difficulty: true,
+            aiEnriched: true,
+            source: true,
+            createdAt: true,
+            updatedAt: true,
+            userId: true
+        }
     })
 
     return Response.json(entry)

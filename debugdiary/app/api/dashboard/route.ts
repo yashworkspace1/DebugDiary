@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { NextResponse } from 'next/server'
 
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions)
@@ -9,14 +10,32 @@ export async function GET(req: Request) {
     const user = await prisma.user.findUnique({ where: { email: session.user.email } })
     if (!user) return new Response('Unauthorized', { status: 401 })
 
+    const entrySelect = {
+        id: true,
+        errorText: true,
+        fixText: true,
+        summary: true,
+        language: true,
+        framework: true,
+        errorType: true,
+        tags: true,
+        difficulty: true,
+        aiEnriched: true,
+        source: true,
+        createdAt: true,
+        updatedAt: true
+    }
+
     const [entries, recentEntries] = await Promise.all([
         prisma.entry.findMany({
-            where: { userId: user.id }
+            where: { userId: user.id },
+            select: entrySelect
         }),
         prisma.entry.findMany({
             where: { userId: user.id },
             orderBy: { createdAt: 'desc' },
-            take: 5
+            take: 5,
+            select: entrySelect
         })
     ])
 
@@ -100,7 +119,7 @@ export async function GET(req: Request) {
         }
     })
 
-    return Response.json({
+    return NextResponse.json({
         stats: {
             total: entries.length,
             thisWeek: thisWeekEntries.length,
@@ -114,5 +133,9 @@ export async function GET(req: Request) {
         byErrorType,
         recentEntries,
         activityGrid
+    }, {
+        headers: {
+            'Cache-Control': 's-maxage=60, stale-while-revalidate=30'
+        }
     })
 }
