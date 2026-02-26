@@ -89,12 +89,19 @@ Password: `demo2026`
 
 ## Screenshots
 
+**Dashboard**
 
 <img width="1919" height="927" alt="Screenshot 2026-02-26 142614" src="https://github.com/user-attachments/assets/63b6a967-846d-4bdb-ab83-dc1d37c5e1a3" />
 
+**New Entry - Deja vu**
+
 <img width="1919" height="932" alt="Screenshot 2026-02-26 142915" src="https://github.com/user-attachments/assets/9bd5e8b7-c3ca-431c-b6b5-93205e412e3c" />
 
+**All Entries**
+
 <img width="1919" height="928" alt="Screenshot 2026-02-26 143134" src="https://github.com/user-attachments/assets/77181dbe-b2bd-4162-a3b0-e58e68c2b29a" />
+
+**Showing VS Code Extension**
 
 <img width="1919" height="1079" alt="Screenshot 2026-02-26 143315" src="https://github.com/user-attachments/assets/a6a8b0d9-e652-432a-b3b0-f7f9d668bc09" />
 
