@@ -1,8 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { authenticateExtension } from '../auth'
-import { enrichEntry, generateEmbedding } from '@/lib/gemini'
+import { enrichWithRetry, embedWithRetry } from '@/lib/gemini'
+import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
+    console.log('Gemini key exists:', !!process.env.GEMINI_API_KEY)
     const user = await authenticateExtension(req)
     if (!user) return new Response('Unauthorized', { status: 401 })
 
@@ -28,20 +30,36 @@ export async function POST(req: Request) {
         }
     })
 
-    // Trigger background enrichment silently
-    enrichEntry(errorText, fixText, codeSnippet)
-        .then(async (enriched) => {
-            const embedding = await generateEmbedding(errorText + ' ' + fixText)
-            await prisma.entry.update({
-                where: { id: entry.id },
-                data: {
-                    ...enriched,
-                    embedding: embedding,
-                    aiEnriched: true
-                }
-            })
-        })
-        .catch(console.error)
+        // Fire and forget (don't await)
+        ; (async () => {
+            try {
+                const enriched = await enrichWithRetry(
+                    errorText,
+                    fixText,
+                    codeSnippet ?? undefined
+                )
 
-    return Response.json({ ...entry, success: true, entryId: entry.id })
+                const embedding = await embedWithRetry(
+                    errorText + ' ' + fixText
+                )
+
+                await prisma.entry.update({
+                    where: { id: entry.id },
+                    data: {
+                        ...enriched,
+                        embedding,
+                        aiEnriched: true
+                    }
+                })
+
+                console.log('Extension entry enriched:', entry.id)
+            } catch (err) {
+                console.error('Extension enrichment failed:', err)
+            }
+        })()
+
+    return NextResponse.json({
+        success: true,
+        entryId: entry.id
+    })
 }

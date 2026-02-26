@@ -76,3 +76,7 @@ export function cosineSimilarity(
     const magB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0))
     return dot / (magA * magB)
 }
+
+// Aliases for explicit retry wrappers
+export const enrichWithRetry = enrichEntry
+export const embedWithRetry = generateEmbedding
