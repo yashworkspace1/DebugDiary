@@ -236,10 +236,21 @@ export default function ApiKeysPage() {
                                     />
                                 </div>
 
-                                <div className="flex gap-3 justify-end">
-                                    <button type="button" onClick={closeAndResetModal} className="px-4 py-2 text-sm text-muted hover:text-white transition-colors">Cancel</button>
-                                    <button type="submit" disabled={generating} className="bg-blue hover:bg-blue/90 text-background px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50">
-                                        {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Generate"}
+                                <div className="flex flex-row justify-end gap-3 mt-8">
+                                    <button
+                                        type="button"
+                                        onClick={closeAndResetModal}
+                                        className="px-5 py-2.5 bg-transparent border border-white/10 text-white/70 rounded-xl hover:bg-white/5 transition-colors font-medium"
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        disabled={generating}
+                                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl font-semibold transition-colors flex items-center gap-2"
+                                    >
+                                        {generating ? 'Generating...' : 'Generate Key'}
                                     </button>
                                 </div>
                             </form>

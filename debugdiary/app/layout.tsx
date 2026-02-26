@@ -28,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${syne.variable} ${dmSans.variable} font-sans bg-[#040608] text-[#f0f4ff] antialiased`}>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className={`${syne.variable} ${dmSans.variable} font-sans bg-[#040608] text-[#f0f4ff] antialiased`} suppressHydrationWarning>
         <Providers>
           <ToastProvider>
             <TooltipProvider>{children}</TooltipProvider>

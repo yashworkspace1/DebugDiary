@@ -39,13 +39,13 @@ export async function POST(req: Request) {
             }
         })
 
-        if (bestMatch && highestScore > 0.82) {
+        if (bestMatch && highestScore > 0.75) {
             return Response.json({ match: bestMatch, similarity: highestScore })
         }
 
         return Response.json({ match: null })
-    } catch (e) {
-        console.error("DejaVu check failed:", e)
-        return new Response('Internal Server Error', { status: 500 })
+    } catch (e: any) {
+        console.error('DejaVu check failed:', e)
+        return Response.json({ match: null, error: e?.message || String(e) }, { status: 500 })
     }
 }
