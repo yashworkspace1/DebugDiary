@@ -190,8 +190,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 ml-[260px] h-full overflow-y-auto bg-transparent relative z-10 w-[calc(100%-260px)]">
+            {/* Main Content — key forces full remount when account switches */}
+            <main key={session?.user?.email || 'anon'} className="flex-1 ml-[260px] h-full overflow-y-auto bg-transparent relative z-10 w-[calc(100%-260px)]">
                 {children}
             </main>
         </div>
