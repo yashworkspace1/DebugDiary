@@ -10,6 +10,8 @@ async function main() {
             name: "Dev Demo",
             email: "dev@debugdiary.com",
             password: "demo2026",
+            emailAlerts: true,
+            timezone: "Asia/Kolkata",
         }
     })
 
