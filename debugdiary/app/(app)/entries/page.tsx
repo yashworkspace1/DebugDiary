@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Plus, Search, TerminalSquare, Globe, Sparkles, Loader2 } from "lucide-react"
+import { Plus, Search, TerminalSquare, Globe, Sparkles, Loader2, Zap } from "lucide-react"
 import { languageColors, errorTypeColors, difficultyConfig } from "@/lib/badges"
 import { Button } from "@/components/ui/button"
 
@@ -113,8 +113,8 @@ export default function EntriesPage() {
                                 key={lang}
                                 onClick={() => setLangFilter(lang)}
                                 className={`px-3 py-1.5 rounded-full text-xs transition-colors ${langFilter === lang
-                                        ? "bg-blue text-white"
-                                        : "bg-surface border border-white/5 text-muted hover:bg-white/5 hover:text-white"
+                                    ? "bg-blue text-white"
+                                    : "bg-surface border border-white/5 text-muted hover:bg-white/5 hover:text-white"
                                     }`}
                             >
                                 {lang}
@@ -129,8 +129,8 @@ export default function EntriesPage() {
                                 key={type}
                                 onClick={() => setTypeFilter(type)}
                                 className={`px-3 py-1.5 rounded-full text-xs transition-colors ${typeFilter === type
-                                        ? "bg-amber-500 text-white"
-                                        : "bg-surface border border-white/5 text-muted hover:bg-white/5 hover:text-white"
+                                    ? "bg-amber-500 text-white"
+                                    : "bg-surface border border-white/5 text-muted hover:bg-white/5 hover:text-white"
                                     }`}
                             >
                                 {type}
@@ -234,7 +234,7 @@ export default function EntriesPage() {
 
                                 <div className="flex justify-between items-center pt-4 border-t border-white/5">
                                     <div className="flex items-center gap-2 text-[11px] text-muted font-medium">
-                                        {entry.source === 'vscode' ? <TerminalSquare className="h-3.5 w-3.5 text-purple-400" /> : <Globe className="h-3.5 w-3.5 text-blue" />}
+                                        {entry.source === 'sdk' ? <Zap className="h-3.5 w-3.5 text-cyan-400" /> : entry.source === 'vscode' ? <TerminalSquare className="h-3.5 w-3.5 text-purple-400" /> : <Globe className="h-3.5 w-3.5 text-blue" />}
                                         {Math.floor((Date.now() - new Date(entry.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days ago
                                     </div>
 

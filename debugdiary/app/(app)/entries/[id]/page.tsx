@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Trash2, Edit2, Copy, Sparkles, Loader2, Globe, TerminalSquare } from "lucide-react"
+import { ArrowLeft, Trash2, Edit2, Copy, Sparkles, Loader2, Globe, TerminalSquare, Zap } from "lucide-react"
 import { useToast } from "@/components/Toast"
 import { useEnrichmentPoller } from "@/hooks/useEnrichmentPoller"
 import { languageColors, errorTypeColors, difficultyConfig } from "@/lib/badges"
@@ -104,12 +104,14 @@ export default function EntryDetailPage() {
 
                     <div className="flex items-center gap-3 shrink-0">
                         <span className="text-sm text-muted">{formattedDate}</span>
-                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${entry.source === 'vscode'
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${entry.source === 'sdk'
+                            ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+                            : entry.source === 'vscode'
                                 ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
                                 : 'bg-blue/10 text-blue border-blue/20'
                             }`}>
-                            {entry.source === 'vscode' ? <TerminalSquare className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
-                            {entry.source === 'vscode' ? 'VS Code' : 'Web'}
+                            {entry.source === 'sdk' ? <Zap className="h-3 w-3" /> : entry.source === 'vscode' ? <TerminalSquare className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
+                            {entry.source === 'sdk' ? 'SDK Auto' : entry.source === 'vscode' ? 'VS Code' : 'Web'}
                         </div>
                     </div>
                 </div>
@@ -145,8 +147,8 @@ export default function EntryDetailPage() {
 
                 {/* AI Enriched indicator */}
                 <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all duration-500 ${enriched
-                        ? 'bg-blue/10 border-blue/20 text-blue'
-                        : 'bg-amber-500/10 border-amber-500/20 text-amber-500 animate-pulse'
+                    ? 'bg-blue/10 border-blue/20 text-blue'
+                    : 'bg-amber-500/10 border-amber-500/20 text-amber-500 animate-pulse'
                     }`}>
                     {enriched ? <Sparkles className="h-3.5 w-3.5 fill-blue text-blue" /> : <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                     {enriched ? 'AI Enriched' : 'AI Processing...'}
@@ -262,18 +264,55 @@ export default function EntryDetailPage() {
                             </div>
 
                             {/* Context */}
-                            {entry.context && (
+                            {entry.source === 'sdk' && entry.context ? (() => {
+                                let ctx: any = null
+                                try { ctx = JSON.parse(entry.context) } catch { }
+                                if (!ctx) return null
+                                return (
+                                    <div className="bg-cyan-500/5 border border-cyan-500/15 rounded-xl p-5">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <Zap className="h-4 w-4 text-cyan-400" />
+                                            <h4 className="text-sm font-bold text-white">Auto Captured</h4>
+                                            <span className="ml-auto text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full font-semibold">SDK</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4 text-sm">
+                                            <div>
+                                                <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Application</p>
+                                                <p className="text-white font-medium">{ctx.appName}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Page</p>
+                                                <p className="text-white/70 truncate text-xs">{ctx.pageTitle || ctx.pageUrl}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">File</p>
+                                                <p className="text-white/70 font-mono text-xs truncate">{ctx.source}:{ctx.line}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Captured At</p>
+                                                <p className="text-white/70 text-xs">{ctx.capturedAt ? new Date(ctx.capturedAt).toLocaleString() : 'N/A'}</p>
+                                            </div>
+                                            {ctx.pageUrl && (
+                                                <div className="col-span-2">
+                                                    <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Page URL</p>
+                                                    <p className="text-white/50 font-mono text-[11px] truncate">{ctx.pageUrl}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )
+                            })() : entry.context ? (
                                 <div>
                                     <h4 className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Context</h4>
                                     <p className="text-sm text-white/80">{entry.context}</p>
                                 </div>
-                            )}
+                            ) : null}
 
                             {/* Metadata */}
                             <div className="pt-4 border-t border-white/5 space-y-3">
                                 <div className="flex justify-between text-xs text-muted">
                                     <span>Source</span>
-                                    <span className="text-white/80">{entry.source === 'vscode' ? 'VS Code Extension' : 'Web App'}</span>
+                                    <span className="text-white/80">{entry.source === 'sdk' ? '⚡ SDK Auto-Capture' : entry.source === 'vscode' ? 'VS Code Extension' : 'Web App'}</span>
                                 </div>
                                 <div className="flex justify-between text-xs text-muted">
                                     <span>Date Added</span>

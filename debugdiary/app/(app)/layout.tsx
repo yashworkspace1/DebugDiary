@@ -152,6 +152,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             </li>
                             <li>
                                 <Link
+                                    href="/settings/sdk"
+                                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isCurrent("/settings/sdk")
+                                        ? "bg-blue/10 border-l-2 border-blue text-white"
+                                        : "text-[#6b7a99] hover:text-white hover:bg-white/[0.03] border-l-2 border-transparent"
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Zap className="h-4 w-4" />
+                                        SDK Setup
+                                    </div>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider border border-cyan-500/20 bg-cyan-500/10 py-0.5 px-1.5 rounded text-cyan-400/70">New</span>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
                                     href="/settings"
                                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isCurrent("/settings")
                                         ? "bg-blue/10 border-l-2 border-blue text-white"
