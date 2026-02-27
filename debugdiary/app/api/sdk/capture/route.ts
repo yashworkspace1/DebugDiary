@@ -83,8 +83,9 @@ export async function POST(req: Request) {
                 .toLowerCase()
                 .replace(/\d+/g, 'N')
                 .replace(/0x[a-f0-9]+/g, 'X')
-                .replace(/'.+?'/g, 'S')
-                .replace(/".+?"/g, 'S')
+                // Only replace quoted strings if they contain numbers (likely IDs/timestamps)
+                .replace(/'.*?\d+.*?'/g, 'S')
+                .replace(/".*?\d+.*?"/g, 'S')
                 .trim()
 
             const n1 = normalize(error1)
@@ -124,7 +125,8 @@ export async function POST(req: Request) {
                     occurrences: { increment: 1 },
                     lastSeenAt: new Date(),
                     affectedUrls: updatedUrls,
-                    isGrouped: true
+                    isGrouped: true,
+                    context: breadcrumbs ? { breadcrumbs } : matchingEntry.context || {}
                 }
             })
 
