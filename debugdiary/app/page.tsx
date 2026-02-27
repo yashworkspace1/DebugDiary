@@ -37,7 +37,7 @@ export default async function LandingPage() {
             </h1>
 
             <p className="text-lg md:text-xl text-[#6b7a99] mb-10 max-w-[480px] leading-relaxed">
-              Stack Overflow helps strangers. <strong className="text-white/80 font-medium font-syne">DebugDiary</strong> helps your past self. Log it once, find it instantly forever.
+              Stack Overflow helps strangers. <strong className="text-white/80 font-medium font-syne">DebugDiary</strong> helps you.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
