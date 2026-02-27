@@ -18,10 +18,10 @@
     var MAX_BREADCRUMBS = 20;
 
     function addBreadcrumb(crumb) {
-        breadcrumbs.push({
-            ...crumb,
-            timestamp: Date.now()
-        });
+        var newCrumb = {};
+        for (var key in crumb) { newCrumb[key] = crumb[key]; }
+        newCrumb.timestamp = Date.now();
+        breadcrumbs.push(newCrumb);
         if (breadcrumbs.length > MAX_BREADCRUMBS) {
             breadcrumbs.shift();
         }
@@ -135,10 +135,10 @@
         });
 
         var breadcrumbsWithRelativeTime = breadcrumbs.map(function (crumb) {
-            return {
-                ...crumb,
-                secondsAgo: Math.round((now - crumb.timestamp) / 1000)
-            };
+            var c = {};
+            for (var key in crumb) { c[key] = crumb[key]; }
+            c.secondsAgo = Math.round((now - crumb.timestamp) / 1000);
+            return c;
         });
 
         var payload = {
@@ -163,7 +163,12 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
                 keepalive: true
-            }).catch(function () { });
+            }).then(function (res) {
+                if (res.ok) console.log('[DebugDiary] Error captured successfully');
+                else console.warn('[DebugDiary] Failed to send error:', res.status);
+            }).catch(function (err) {
+                console.error('[DebugDiary] Network error sending report:', err);
+            });
         } catch (e) {
             // Silent fail — never break the host app
         }
