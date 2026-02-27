@@ -31,6 +31,10 @@ export default function SettingsPage() {
     const [deleteAccountConfirm, setDeleteAccountConfirm] = useState("")
     const [deletingAccount, setDeletingAccount] = useState(false)
 
+    // Digest State
+    const [emailAlerts, setEmailAlerts] = useState(true)
+    const [timezone, setTimezone] = useState("Asia/Kolkata")
+
     useEffect(() => {
         if (session?.user?.name) setName(session.user.name)
 
@@ -55,6 +59,17 @@ export default function SettingsPage() {
                         total: data.stats.total || 0,
                         joinDate: "" // Would need to add createdAt to session or fetch explicitly, omit for now
                     })
+                }
+            })
+            .catch(() => { })
+
+        // Fetch digest settings
+        fetch('/api/settings/digest')
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (data) {
+                    setEmailAlerts(data.emailAlerts)
+                    setTimezone(data.timezone)
                 }
             })
             .catch(() => { })
@@ -251,6 +266,66 @@ export default function SettingsPage() {
                         </div>
                     </div>
 
+                </div>
+            </section>
+
+            {/* SECTION 3.5: EMAIL DIGEST */}
+            <section className="space-y-6">
+                <h3 className="text-sm font-bold text-muted uppercase tracking-wider mb-4 border-b border-white/5 pb-2">Email Digest</h3>
+
+                <div className="bg-[#0c0f14] border border-white/5 rounded-2xl p-6 space-y-6">
+                    <div>
+                        <p className="text-sm text-white/40 mb-4">Get error summaries at 8:00 AM ☕ and 10:00 PM 🌙 in your timezone.</p>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-white font-medium">Daily Digest Emails</p>
+                            <p className="text-white/40 text-sm">Morning ☕ and Evening 🌙 reports</p>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                const newVal = !emailAlerts
+                                setEmailAlerts(newVal)
+                                await fetch('/api/settings/digest', {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ emailAlerts: newVal })
+                                })
+                            }}
+                            className={`relative w-12 h-6 rounded-full transition-colors ${emailAlerts ? 'bg-green-500' : 'bg-white/10'}`}
+                        >
+                            <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${emailAlerts ? 'translate-x-7' : 'translate-x-1'}`} />
+                        </button>
+                    </div>
+
+                    <div className="h-px bg-white/5 w-full"></div>
+
+                    <div>
+                        <p className="text-white font-medium mb-2">Your Timezone</p>
+                        <select
+                            value={timezone}
+                            onChange={async (e) => {
+                                const newTz = e.target.value
+                                setTimezone(newTz)
+                                await fetch('/api/settings/digest', {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ timezone: newTz })
+                                })
+                            }}
+                            className="w-full bg-bg/50 border border-border rounded-xl px-4 py-3 text-sm text-text focus:outline-none focus:ring-1 focus:ring-blue/50 focus:border-blue/50 transition-all font-medium appearance-none"
+                        >
+                            <option value="Asia/Kolkata">IST — India (UTC+5:30)</option>
+                            <option value="America/New_York">EST — New York (UTC-5)</option>
+                            <option value="America/Los_Angeles">PST — Los Angeles (UTC-8)</option>
+                            <option value="Europe/London">GMT — London (UTC+0)</option>
+                            <option value="Europe/Paris">CET — Paris (UTC+1)</option>
+                            <option value="Asia/Tokyo">JST — Tokyo (UTC+9)</option>
+                            <option value="Australia/Sydney">AEST — Sydney (UTC+10)</option>
+                            <option value="UTC">UTC</option>
+                        </select>
+                    </div>
                 </div>
             </section>
 

@@ -21,6 +21,12 @@ model User {
   sessions      Session[]
   entries       Entry[]
   apiKeys       ApiKey[]
+
+  // Email Digest
+  emailAlerts        Boolean   @default(true)
+  timezone           String    @default("Asia/Kolkata")
+  lastMorningDigest  DateTime?
+  lastEveningDigest  DateTime?
 }
 
 model Account {
