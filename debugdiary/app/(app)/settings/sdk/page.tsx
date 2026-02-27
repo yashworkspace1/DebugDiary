@@ -20,7 +20,7 @@ export default function SDKSetupPage() {
             .catch(() => { })
     }, [])
 
-    const scriptTag = `<script\n  src="https://debug-diary-eta.vercel.app/sdk.js"\n  data-key="${apiKey || 'YOUR_API_KEY'}"\n  data-app="My App Name">\n</script>`
+    const scriptTag = `<script\n  src="https://debugdiary.vercel.app/sdk.js"\n  data-key="${apiKey || 'YOUR_API_KEY'}"\n  data-app="My App Name">\n</script>`
 
     const handleCopy = () => {
         navigator.clipboard.writeText(scriptTag)

@@ -5,7 +5,7 @@
     if (!script) return;
 
     var apiKey = script.getAttribute('data-key');
-    var apiUrl = script.getAttribute('data-url') || 'https://debug-diary-eta.vercel.app';
+    var apiUrl = script.getAttribute('data-url') || 'https://debugdiary.vercel.app';
     var appName = script.getAttribute('data-app') || document.title || 'Unknown App';
 
     if (!apiKey) {
