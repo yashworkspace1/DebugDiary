@@ -106,7 +106,8 @@ export async function POST(req: Request) {
                 errorText: true,
                 occurrences: true,
                 affectedUrls: true,
-                lastSeenAt: true
+                lastSeenAt: true,
+                context: true
             }
         })
 
