@@ -127,7 +127,16 @@ export async function POST(req: Request) {
                     lastSeenAt: new Date(),
                     affectedUrls: updatedUrls,
                     isGrouped: true,
-                    context: breadcrumbs ? { breadcrumbs } : matchingEntry.context || {}
+                    context: JSON.stringify({
+                        ...(matchingEntry.context
+                            ? JSON.parse(
+                                typeof matchingEntry.context === 'string'
+                                    ? matchingEntry.context
+                                    : JSON.stringify(matchingEntry.context)
+                            )
+                            : {}),
+                        breadcrumbs: breadcrumbs || []
+                    })
                 }
             })
 
