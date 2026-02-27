@@ -227,7 +227,7 @@ export default function DashboardPage() {
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-[-20px]">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-[-20px] z-0">
                                 <span className="text-3xl font-syne font-bold">{stats.total}</span>
                                 <span className="text-[10px] text-muted uppercase tracking-widest mt-0.5">errors</span>
                             </div>
