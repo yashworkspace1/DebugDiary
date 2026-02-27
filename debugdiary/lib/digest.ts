@@ -6,48 +6,48 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 type DigestType = 'morning' | 'evening'
 
 export async function sendDigest(userId: string, type: DigestType) {
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { email: true, emailAlerts: true, timezone: true }
-    })
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, emailAlerts: true, timezone: true }
+  })
 
-    if (!user?.email || !user?.emailAlerts) return
+  if (!user?.email || !user?.emailAlerts) return
 
-    // morning covers 10pm→8am (10 hours), evening covers 8am→10pm (14 hours)
-    const hoursBack = type === 'morning' ? 10 : 14
-    const windowStart = new Date(Date.now() - hoursBack * 60 * 60 * 1000)
+  // Single daily digest covers full 24 hours
+  const hoursBack = 24
+  const windowStart = new Date(Date.now() - hoursBack * 60 * 60 * 1000)
 
-    const entries = await prisma.entry.findMany({
-        where: { userId, createdAt: { gte: windowStart } },
-        orderBy: [{ occurrences: 'desc' }, { createdAt: 'desc' }],
-        select: {
-            id: true,
-            errorText: true,
-            errorType: true,
-            occurrences: true,
-            source: true,
-            createdAt: true,
-            aiEnriched: true,
-            summary: true,
-            fixText: true
-        },
-        take: 20
-    })
+  const entries = await prisma.entry.findMany({
+    where: { userId, createdAt: { gte: windowStart } },
+    orderBy: [{ occurrences: 'desc' }, { createdAt: 'desc' }],
+    select: {
+      id: true,
+      errorText: true,
+      errorType: true,
+      occurrences: true,
+      source: true,
+      createdAt: true,
+      aiEnriched: true,
+      summary: true,
+      fixText: true
+    },
+    take: 20
+  })
 
-    const totalErrors = entries.length
-    const newErrors = entries.filter((e: any) => e.occurrences === 1).length
-    const recurringErrors = entries.filter((e: any) => e.occurrences > 1).length
-    const isAllClear = totalErrors === 0
-    const appUrl = process.env.NEXTAUTH_URL || 'https://debugdiary.vercel.app'
-    const isMorning = type === 'morning'
-    const emoji = isMorning ? '☕' : '🌙'
-    const timeLabel = isMorning ? 'overnight' : 'today'
+  const totalErrors = entries.length
+  const newErrors = entries.filter((e: any) => e.occurrences === 1).length
+  const recurringErrors = entries.filter((e: any) => e.occurrences > 1).length
+  const isAllClear = totalErrors === 0
+  const appUrl = process.env.NEXTAUTH_URL || 'https://debugdiary.vercel.app'
+  const isMorning = type === 'morning'
+  const emoji = isMorning ? '☕' : '🌙'
+  const timeLabel = isMorning ? 'in the last 24 hours' : 'today'
 
-    const subject = isAllClear
-        ? `${emoji} DebugDiary — All clear ${timeLabel}! ✅`
-        : `${emoji} DebugDiary — ${totalErrors} error${totalErrors > 1 ? 's' : ''} ${timeLabel}`
+  const subject = isAllClear
+    ? `${emoji} DebugDiary — All clear ${timeLabel}! ✅`
+    : `${emoji} DebugDiary — ${totalErrors} error${totalErrors > 1 ? 's' : ''} ${timeLabel}`
 
-    const errorItemsHtml = entries.slice(0, 5).map((entry: any) => `
+  const errorItemsHtml = entries.slice(0, 5).map((entry: any) => `
     <div style="background:#0f0f0f;border:1px solid #222;border-left:3px solid ${entry.occurrences > 1 ? '#ff8800' : '#ff4444'};border-radius:8px;padding:14px;margin-bottom:10px;">
       <div style="font-family:monospace;font-size:12px;color:#ff6666;margin-bottom:8px;word-break:break-all;">
         ${entry.errorText.substring(0, 120)}${entry.errorText.length > 120 ? '...' : ''}
@@ -55,9 +55,9 @@ export async function sendDigest(userId: string, type: DigestType) {
       ${entry.summary || entry.fixText ? `<div style="font-size:12px;color:#00cc66;margin-bottom:8px;">💡 ${(entry.summary || entry.fixText).substring(0, 100)}</div>` : ''}
       <div style="font-size:11px;color:#555;">
         <span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;${entry.occurrences > 1
-            ? 'background:#ff880015;color:#ff9933;border:1px solid #ff880030;'
-            : 'background:#ff444415;color:#ff6666;border:1px solid #ff444430;'
-        }">
+      ? 'background:#ff880015;color:#ff9933;border:1px solid #ff880030;'
+      : 'background:#ff444415;color:#ff6666;border:1px solid #ff444430;'
+    }">
           ${entry.occurrences > 1 ? '🔁 ' + entry.occurrences + 'x' : '🆕 New'}
         </span>
         ${entry.source === 'sdk' ? '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;background:#4488ff15;color:#6699ff;border:1px solid #4488ff30;margin-left:4px;">⚡ SDK</span>' : ''}
@@ -67,7 +67,7 @@ export async function sendDigest(userId: string, type: DigestType) {
     </div>
     `).join('')
 
-    const emailHtml = `
+  const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
@@ -123,18 +123,18 @@ export async function sendDigest(userId: string, type: DigestType) {
 </body>
 </html>`
 
-    await resend.emails.send({
-        from: 'DebugDiary <onboarding@resend.dev>',
-        to: user.email,
-        subject,
-        html: emailHtml
-    })
+  await resend.emails.send({
+    from: 'DebugDiary <onboarding@resend.dev>',
+    to: user.email,
+    subject,
+    html: emailHtml
+  })
 
-    // Update last digest timestamp
-    await prisma.user.update({
-        where: { id: userId },
-        data: type === 'morning'
-            ? { lastMorningDigest: new Date() }
-            : { lastEveningDigest: new Date() }
-    })
+  // Update last digest timestamp
+  await prisma.user.update({
+    where: { id: userId },
+    data: type === 'morning'
+      ? { lastMorningDigest: new Date() }
+      : { lastEveningDigest: new Date() }
+  })
 }
