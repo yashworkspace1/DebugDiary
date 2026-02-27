@@ -103,7 +103,7 @@ export default function DashboardPage() {
         )
     }
 
-    const { stats, byLanguage, byErrorType, recentEntries, activityGrid } = data
+    const { stats, byLanguage, byErrorType, recentEntries, activityGrid, mostRecurring } = data
 
     const StatCard = ({ title, value, icon: Icon, color, subtext, subtextColor = "text-muted" }: { title: string, value: string | number, icon: any, color: string, subtext: string, subtextColor?: string }) => (
         <div className="bg-[#0c0f14] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-colors">
@@ -188,6 +188,16 @@ export default function DashboardPage() {
                     color="bg-green-500/10 text-green-500"
                     subtext={stats.total > 0 ? `Top: ${stats.topLanguage}` : "No data yet"}
                 />
+                {stats.recurringErrors > 0 && (
+                    <StatCard
+                        title="Recurring"
+                        value={stats.recurringErrors}
+                        icon={Activity}
+                        color="bg-orange-500/10 text-orange-400"
+                        subtext="Grouped errors"
+                        subtextColor="text-orange-400/70"
+                    />
+                )}
             </div>
 
             {/* ROW 2: CHARTS */}
@@ -373,6 +383,37 @@ export default function DashboardPage() {
                     )}
                 </div>
             </div>
+
+            {/* ROW 3.5: MOST FREQUENT ERRORS */}
+            {mostRecurring?.length > 0 && (
+                <div className="bg-[#0c0f14] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors">
+                    <h3 className="font-semibold text-lg text-text">Most Frequent Errors</h3>
+                    <p className="text-sm text-muted mb-4">Errors that keep coming back</p>
+                    <div className="space-y-3">
+                        {mostRecurring.map((entry: any) => (
+                            <a
+                                key={entry.id}
+                                href={`/entries/${entry.id}`}
+                                className="block bg-white/[0.02] border border-white/5 rounded-xl p-4 hover:border-orange-500/20 hover:bg-orange-500/[0.03] transition-all"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <span className="text-orange-400 font-mono font-bold text-lg">{entry.occurrences}x</span>
+                                        <div className="min-w-0">
+                                            <p className="text-sm text-white/80 font-mono truncate">{entry.errorText}</p>
+                                            <p className="text-xs text-muted mt-0.5">
+                                                {entry.errorType} · Last seen {entry.lastSeenAt ? new Date(entry.lastSeenAt).toLocaleDateString() : 'N/A'}
+                                                {entry.affectedUrls?.length > 1 && ` · ${entry.affectedUrls.length} pages`}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <ArrowRight className="h-4 w-4 text-muted shrink-0" />
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* ROW 4: ACTIVITY CALENDAR */}
             <div className="bg-[#0c0f14] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors">

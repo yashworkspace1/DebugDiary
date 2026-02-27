@@ -119,6 +119,25 @@ export async function GET(req: Request) {
         }
     })
 
+    // Recurring errors stats
+    const recurringErrors = await prisma.entry.count({
+        where: { userId: user.id, occurrences: { gt: 1 } }
+    })
+
+    const mostRecurring = await prisma.entry.findMany({
+        where: { userId: user.id, occurrences: { gt: 1 } },
+        orderBy: { occurrences: 'desc' },
+        take: 3,
+        select: {
+            id: true,
+            errorText: true,
+            occurrences: true,
+            lastSeenAt: true,
+            errorType: true,
+            affectedUrls: true
+        }
+    })
+
     return NextResponse.json({
         stats: {
             total: entries.length,
@@ -127,12 +146,14 @@ export async function GET(req: Request) {
             streak,
             languages: languagesCount,
             topLanguage,
-            topErrorType
+            topErrorType,
+            recurringErrors
         },
         byLanguage,
         byErrorType,
         recentEntries,
-        activityGrid
+        activityGrid,
+        mostRecurring
     }, {
         headers: {
             'Cache-Control': 'no-store, no-cache, must-revalidate'

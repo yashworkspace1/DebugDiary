@@ -117,6 +117,44 @@ export default function EntryDetailPage() {
                 </div>
             </div>
 
+            {/* RECURRING ERROR BANNER */}
+            {entry.occurrences > 1 && (
+                <div className="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4 mb-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <span className="text-2xl">🔁</span>
+                        <div>
+                            <p className="text-orange-400 font-bold font-syne">Recurring Error</p>
+                            <p className="text-white/60 text-sm">
+                                This error has occurred{' '}
+                                <span className="text-white font-bold">{entry.occurrences} times</span>
+                                {' '}across{' '}
+                                <span className="text-white font-bold">{entry.affectedUrls?.length || 1} {entry.affectedUrls?.length === 1 ? 'page' : 'pages'}</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div className="text-right text-xs text-white/40">
+                        <p>First seen</p>
+                        <p className="text-white/60">{entry.firstSeenAt ? new Date(entry.firstSeenAt).toLocaleDateString() : 'N/A'}</p>
+                        <p className="mt-1">Last seen</p>
+                        <p className="text-white/60">{entry.lastSeenAt ? new Date(entry.lastSeenAt).toLocaleString() : 'N/A'}</p>
+                    </div>
+                </div>
+            )}
+
+            {/* AFFECTED PAGES */}
+            {entry.affectedUrls?.length > 1 && (
+                <div className="mb-6">
+                    <p className="text-white/40 text-xs uppercase tracking-wider mb-2">Affected Pages</p>
+                    <div className="flex flex-wrap gap-2">
+                        {entry.affectedUrls.map((url: string) => (
+                            <span key={url} className="text-xs bg-white/5 border border-white/10 rounded-lg px-3 py-1 text-white/60 font-mono truncate max-w-xs">
+                                {url}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* BADGES ROW */}
             <div className="flex flex-wrap items-center gap-3 mb-8 pb-6 border-b border-white/5">
                 {entry.language && (

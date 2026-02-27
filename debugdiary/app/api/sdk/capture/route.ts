@@ -77,7 +77,64 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid API key' }, { status: 401, headers: corsHeaders })
         }
 
-        // Parse and create entry
+        // Error grouping — check for existing similar entry
+        function isSameError(error1: string, error2: string): boolean {
+            const normalize = (str: string) => str
+                .toLowerCase()
+                .replace(/\d+/g, 'N')
+                .replace(/0x[a-f0-9]+/g, 'X')
+                .replace(/'.+?'/g, 'S')
+                .replace(/".+?"/g, 'S')
+                .trim()
+
+            const n1 = normalize(error1)
+            const n2 = normalize(error2)
+            return n1 === n2 || n1.includes(n2) || n2.includes(n1)
+        }
+
+        const existingEntries = await prisma.entry.findMany({
+            where: {
+                userId: keyRecord.userId,
+                source: 'sdk',
+                createdAt: {
+                    gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // last 7 days
+                }
+            },
+            select: {
+                id: true,
+                errorText: true,
+                occurrences: true,
+                affectedUrls: true,
+                lastSeenAt: true
+            }
+        })
+
+        const matchingEntry = existingEntries.find((e: any) => isSameError(e.errorText, error))
+
+        // If match found → update existing entry
+        if (matchingEntry) {
+            const updatedUrls = Array.from(new Set([
+                ...matchingEntry.affectedUrls,
+                ...(pageUrl ? [pageUrl] : [])
+            ]))
+
+            await prisma.entry.update({
+                where: { id: matchingEntry.id },
+                data: {
+                    occurrences: { increment: 1 },
+                    lastSeenAt: new Date(),
+                    affectedUrls: updatedUrls,
+                    isGrouped: true
+                }
+            })
+
+            return NextResponse.json(
+                { captured: true, grouped: true, entryId: matchingEntry.id, occurrences: matchingEntry.occurrences + 1 },
+                { status: 200, headers: corsHeaders }
+            )
+        }
+
+        // No match → create new entry
         const parsed = parseStack(stack, source, line)
 
         const entry = await prisma.entry.create({
@@ -102,7 +159,10 @@ export async function POST(req: Request) {
                 errorType: detectErrorType(error),
                 aiEnriched: false,
                 language: 'javascript',
-                tags: []
+                tags: [],
+                affectedUrls: pageUrl ? [pageUrl] : [],
+                firstSeenAt: new Date(),
+                lastSeenAt: new Date()
             }
         })
 

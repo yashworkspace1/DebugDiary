@@ -195,6 +195,11 @@ export default function EntriesPage() {
                                                 {entry.errorType}
                                             </span>
                                         )}
+                                        {entry.occurrences > 1 && (
+                                            <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full px-2 py-0.5 font-mono">
+                                                🔁 {entry.occurrences}x
+                                            </span>
+                                        )}
                                     </div>
                                     {diffStyle && (
                                         <span className="text-[10px] font-semibold flex items-center gap-1 opacity-80" style={{ color: diffStyle.color }}>

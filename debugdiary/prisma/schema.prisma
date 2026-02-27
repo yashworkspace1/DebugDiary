@@ -72,6 +72,13 @@ model Entry {
   // (pgvector not needed, use cosine similarity in JS)
   embedding    Json?
 
+  // Error grouping
+  occurrences    Int      @default(1)
+  firstSeenAt    DateTime @default(now())
+  lastSeenAt     DateTime @default(now())
+  affectedUrls   String[] @default([])
+  isGrouped      Boolean  @default(false)
+
   // Meta
   source       String   @default("web")
   createdAt    DateTime @default(now())
