@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
-import { Activity, BookOpen, Bug, Code2, Sparkles, AlertCircle, ArrowRight, Flame } from "lucide-react"
+import { Activity, BookOpen, Bug, Code2, Sparkles, AlertCircle, ArrowRight, Flame, ChevronLeft, ChevronRight } from "lucide-react"
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis } from 'recharts'
 import { errorTypeColors, languageColors } from "@/lib/badges"
 
@@ -23,12 +23,14 @@ const CustomTooltip = ({ active, payload }: any) => {
 }
 
 const HeatmapCell = ({ date, count, colIndex }: { date: string, count: number, colIndex: number }) => {
+    // Future date placeholder — render invisible cell
+    if (count === -1) return <div className="w-[10px] h-[10px]" />
+
     let bg = "bg-white/5"
     if (count === 1) bg = "bg-blue/30"
     if (count === 2) bg = "bg-blue/60"
     if (count >= 3) bg = "bg-blue/90"
 
-    // If it's one of the first 3 columns, align left so it doesn't clip
     const tooltipAlignment = colIndex < 3
         ? "left-0 -translate-x-2"
         : "left-1/2 -translate-x-1/2"
@@ -44,11 +46,17 @@ const HeatmapCell = ({ date, count, colIndex }: { date: string, count: number, c
     )
 }
 
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
 export default function DashboardPage() {
     const { data: session } = useSession()
     const [data, setData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [calendarMonth, setCalendarMonth] = useState(() => {
+        const now = new Date()
+        return new Date(now.getFullYear(), now.getMonth(), 1)
+    })
 
     useEffect(() => {
         setData(null)
@@ -112,27 +120,23 @@ export default function DashboardPage() {
         </div>
     )
 
-    // Build Activity Grid (12 cols x 7 rows)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const msInDay = 24 * 60 * 60 * 1000
-    const gridDays = []
+    // Calendar helpers
+    const calYear = calendarMonth.getFullYear()
+    const calMonth = calendarMonth.getMonth()
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
+    const firstDayOfWeek = new Date(calYear, calMonth, 1).getDay() // 0=Sun
+    const todayStr = new Date().toISOString().split('T')[0]
 
-    // Generate the last 84 days strictly
-    for (let i = 83; i >= 0; i--) {
-        const d = new Date(today.getTime() - i * msInDay)
-        const dateStr = d.toISOString().split('T')[0]
-        gridDays.push({
-            dateStr,
-            count: activityGrid[dateStr] || 0
-        })
+    const calendarCells = []
+    // Empty cells before month starts
+    for (let i = 0; i < firstDayOfWeek; i++) calendarCells.push(null)
+    // Day cells
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+        calendarCells.push({ day: d, dateStr, count: activityGrid[dateStr] || 0 })
     }
 
-    // Convert into columns of 7 to flow top-to-bottom, left-to-right
-    const gridCols = []
-    for (let i = 0; i < gridDays.length; i += 7) {
-        gridCols.push(gridDays.slice(i, i + 7))
-    }
+    const canGoNext = !(calYear === new Date().getFullYear() && calMonth === new Date().getMonth())
 
     // Insight calculation
     const topErrorEntry = byErrorType?.[0]
@@ -370,35 +374,84 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* ROW 4: ACTIVITY HEATMAP */}
+            {/* ROW 4: ACTIVITY CALENDAR */}
             <div className="bg-[#0c0f14] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors">
-                <div className="mb-6">
-                    <h3 className="font-semibold text-lg text-text">Logging Activity</h3>
-                    <p className="text-sm text-muted">Last 12 weeks of error logging</p>
+                {/* Header with navigation */}
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 className="font-semibold text-lg text-text">Logging Activity</h3>
+                        <p className="text-sm text-muted">Your error logging calendar</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setCalendarMonth(new Date(calYear, calMonth - 1, 1))}
+                            className="p-2 rounded-lg hover:bg-white/5 text-muted hover:text-white transition-colors"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        <span className="text-sm font-semibold text-text w-36 text-center">
+                            {MONTH_NAMES[calMonth]} {calYear}
+                        </span>
+                        <button
+                            onClick={() => canGoNext && setCalendarMonth(new Date(calYear, calMonth + 1, 1))}
+                            disabled={!canGoNext}
+                            className="p-2 rounded-lg hover:bg-white/5 text-muted hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
 
-                <div className="flex gap-4">
-                    {/* Day Labels */}
-                    <div className="flex flex-col justify-between text-[10px] text-muted font-medium py-1 w-6">
-                        <span></span>
-                        <span>M</span>
-                        <span></span>
-                        <span>W</span>
-                        <span></span>
-                        <span>F</span>
-                        <span></span>
-                    </div>
+                {/* Day-of-week headers */}
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                        <div key={d} className="text-[10px] font-semibold text-muted text-center uppercase tracking-wider py-1">{d}</div>
+                    ))}
+                </div>
 
-                    {/* Grid */}
-                    <div className="flex gap-[3px] flex-1 overflow-x-auto pt-8 -mt-8 pb-2 px-6 -ml-6 scrollbar-hide">
-                        {gridCols.map((col, colIndex) => (
-                            <div key={`col-${colIndex}`} className="flex flex-col gap-[3px]">
-                                {col.map((cell, cellIndex) => (
-                                    <HeatmapCell key={`cell-${colIndex}-${cellIndex}`} date={cell.dateStr} count={cell.count} colIndex={colIndex} />
-                                ))}
+                {/* Calendar grid */}
+                <div className="grid grid-cols-7 gap-1">
+                    {calendarCells.map((cell, i) => {
+                        if (!cell) return <div key={`empty-${i}`} />
+
+                        const isToday = cell.dateStr === todayStr
+                        const isFuture = new Date(cell.dateStr) > new Date()
+
+                        let cellStyle: React.CSSProperties = {}
+                        let cellClass = 'text-white/40 hover:bg-white/5'
+
+                        if (isToday) {
+                            cellStyle = { backgroundColor: 'rgba(59,130,246,0.25)', boxShadow: '0 0 0 2px rgba(59,130,246,0.5)' }
+                            cellClass = 'text-white font-bold'
+                        } else if (isFuture) {
+                            cellClass = 'text-white/15'
+                        } else if (cell.count >= 3) {
+                            cellStyle = { backgroundColor: 'rgba(59,130,246,0.45)' }
+                            cellClass = 'text-white font-semibold'
+                        } else if (cell.count === 2) {
+                            cellStyle = { backgroundColor: 'rgba(59,130,246,0.25)' }
+                            cellClass = 'text-blue-300'
+                        } else if (cell.count === 1) {
+                            cellStyle = { backgroundColor: 'rgba(59,130,246,0.12)' }
+                            cellClass = 'text-blue-400/80'
+                        }
+
+                        return (
+                            <div
+                                key={cell.dateStr}
+                                style={cellStyle}
+                                className={`relative flex flex-col items-center justify-center py-2.5 rounded-lg text-xs transition-colors group ${cellClass}`}
+                            >
+                                <span className="leading-none">{cell.day}</span>
+                                {/* Hover tooltip */}
+                                {!isFuture && (
+                                    <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#1a1f2e] border border-white/10 text-[10px] text-white rounded whitespace-nowrap z-50 pointer-events-none transition-opacity shadow-lg">
+                                        {cell.count > 0 ? `${cell.count} ${cell.count === 1 ? 'entry' : 'entries'}` : 'No entries'}
+                                    </div>
+                                )}
                             </div>
-                        ))}
-                    </div>
+                        )
+                    })}
                 </div>
             </div>
 
