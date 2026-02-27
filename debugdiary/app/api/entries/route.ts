@@ -34,7 +34,11 @@ export async function GET(req: Request) {
             aiEnriched: true,
             source: true,
             createdAt: true,
-            updatedAt: true
+            updatedAt: true,
+            occurrences: true,
+            affectedUrls: true,
+            firstSeenAt: true,
+            lastSeenAt: true
         }
     })
 

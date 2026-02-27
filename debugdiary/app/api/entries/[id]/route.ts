@@ -26,7 +26,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             source: true,
             createdAt: true,
             updatedAt: true,
-            userId: true
+            userId: true,
+            occurrences: true,
+            affectedUrls: true,
+            firstSeenAt: true,
+            lastSeenAt: true
         }
     })
 
