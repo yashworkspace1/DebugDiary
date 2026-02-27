@@ -199,6 +199,12 @@
         originalConsoleError.apply(console, arguments);
         var args = Array.prototype.slice.call(arguments);
         var message = args.map(function (a) { return String(a); }).join(' ');
+
+        addBreadcrumb({
+            type: 'console_error',
+            message: message.substring(0, 100)
+        });
+
         if (message.includes('Error') || message.includes('error')) {
             captureError({
                 message: message.substring(0, 500),
