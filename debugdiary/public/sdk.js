@@ -13,6 +13,112 @@
         return;
     }
 
+    // --- BREADCRUMBS ---
+    var breadcrumbs = [];
+    var MAX_BREADCRUMBS = 20;
+
+    function addBreadcrumb(crumb) {
+        breadcrumbs.push({
+            ...crumb,
+            timestamp: Date.now()
+        });
+        if (breadcrumbs.length > MAX_BREADCRUMBS) {
+            breadcrumbs.shift();
+        }
+    }
+
+    // Track navigation (PushState)
+    var originalPushState = history.pushState;
+    history.pushState = function () {
+        originalPushState.apply(history, arguments);
+        addBreadcrumb({
+            type: 'navigation',
+            url: window.location.href,
+            title: document.title
+        });
+    };
+
+    window.addEventListener('popstate', function () {
+        addBreadcrumb({
+            type: 'navigation',
+            url: window.location.href,
+            title: document.title
+        });
+    });
+
+    // Track clicks
+    document.addEventListener('click', function (e) {
+        var target = e.target;
+        var text = (
+            target.innerText ||
+            target.value ||
+            target.getAttribute('aria-label') ||
+            target.getAttribute('placeholder') ||
+            target.tagName
+        ).substring(0, 60);
+
+        addBreadcrumb({
+            type: 'click',
+            element: text,
+            tag: target.tagName.toLowerCase(),
+            id: target.id || null,
+            className: target.className && typeof target.className === 'string'
+                ? target.className.split(' ')[0]
+                : null
+        });
+    }, true);
+
+    // Track fetch requests
+    var originalFetch = window.fetch;
+    window.fetch = async function () {
+        var args = arguments;
+        var url = typeof args[0] === 'string'
+            ? args[0]
+            : args[0] && args[0].url ? args[0].url : 'unknown';
+
+        var startTime = Date.now();
+
+        try {
+            var response = await originalFetch.apply(window, args);
+            addBreadcrumb({
+                type: 'fetch',
+                url: url.substring(0, 100),
+                method: args[1] && args[1].method ? args[1].method : 'GET',
+                status: response.status,
+                duration: Date.now() - startTime
+            });
+            return response;
+        } catch (err) {
+            addBreadcrumb({
+                type: 'fetch_error',
+                url: url.substring(0, 100),
+                method: args[1] && args[1].method ? args[1].method : 'GET',
+                error: err.message,
+                duration: Date.now() - startTime
+            });
+            throw err;
+        }
+    };
+
+    // Track console warnings
+    var originalConsoleWarn = console.warn;
+    console.warn = function () {
+        originalConsoleWarn.apply(console, arguments);
+        var args = Array.prototype.slice.call(arguments);
+        addBreadcrumb({
+            type: 'console_warn',
+            message: args.map(function (a) { return String(a); }).join(' ').substring(0, 100)
+        });
+    };
+
+    // Initial page load
+    addBreadcrumb({
+        type: 'page_load',
+        url: window.location.href,
+        title: document.title,
+        referrer: document.referrer || null
+    });
+
     // Deduplication: don't send the same error twice within 5 seconds
     var recentErrors = {};
 
@@ -21,6 +127,19 @@
         var now = Date.now();
         if (recentErrors[dedupKey] && now - recentErrors[dedupKey] < 5000) return;
         recentErrors[dedupKey] = now;
+
+        // Add error as final breadcrumb
+        addBreadcrumb({
+            type: 'error',
+            message: errorData.message.substring(0, 100)
+        });
+
+        var breadcrumbsWithRelativeTime = breadcrumbs.map(function (crumb) {
+            return {
+                ...crumb,
+                secondsAgo: Math.round((now - crumb.timestamp) / 1000)
+            };
+        });
 
         var payload = {
             apiKey: apiKey,
@@ -34,7 +153,8 @@
             pageTitle: document.title,
             userAgent: navigator.userAgent,
             timestamp: new Date().toISOString(),
-            appName: appName
+            appName: appName,
+            breadcrumbs: breadcrumbsWithRelativeTime
         };
 
         try {

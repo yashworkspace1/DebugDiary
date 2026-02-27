@@ -307,36 +307,110 @@ export default function EntryDetailPage() {
                                 try { ctx = JSON.parse(entry.context) } catch { }
                                 if (!ctx) return null
                                 return (
-                                    <div className="bg-cyan-500/5 border border-cyan-500/15 rounded-xl p-5">
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <Zap className="h-4 w-4 text-cyan-400" />
-                                            <h4 className="text-sm font-bold text-white">Auto Captured</h4>
-                                            <span className="ml-auto text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full font-semibold">SDK</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4 text-sm">
-                                            <div>
-                                                <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Application</p>
-                                                <p className="text-white font-medium">{ctx.appName}</p>
+                                    <div className="space-y-4">
+                                        <div className="bg-cyan-500/5 border border-cyan-500/15 rounded-xl p-5">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <Zap className="h-4 w-4 text-cyan-400" />
+                                                <h4 className="text-sm font-bold text-white">Auto Captured</h4>
+                                                <span className="ml-auto text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full font-semibold">SDK</span>
                                             </div>
-                                            <div>
-                                                <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Page</p>
-                                                <p className="text-white/70 truncate text-xs">{ctx.pageTitle || ctx.pageUrl}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">File</p>
-                                                <p className="text-white/70 font-mono text-xs truncate">{ctx.source}:{ctx.line}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Captured At</p>
-                                                <p className="text-white/70 text-xs">{ctx.capturedAt ? new Date(ctx.capturedAt).toLocaleString() : 'N/A'}</p>
-                                            </div>
-                                            {ctx.pageUrl && (
-                                                <div className="col-span-2">
-                                                    <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Page URL</p>
-                                                    <p className="text-white/50 font-mono text-[11px] truncate">{ctx.pageUrl}</p>
+                                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                                <div>
+                                                    <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Application</p>
+                                                    <p className="text-white font-medium">{ctx.appName}</p>
                                                 </div>
-                                            )}
+                                                <div>
+                                                    <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Page</p>
+                                                    <p className="text-white/70 truncate text-xs">{ctx.pageTitle || ctx.pageUrl}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">File</p>
+                                                    <p className="text-white/70 font-mono text-xs truncate">{ctx.source}:{ctx.line}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Captured At</p>
+                                                    <p className="text-white/70 text-xs">{ctx.capturedAt ? new Date(ctx.capturedAt).toLocaleString() : 'N/A'}</p>
+                                                </div>
+                                                {ctx.pageUrl && (
+                                                    <div className="col-span-2">
+                                                        <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Page URL</p>
+                                                        <p className="text-white/50 font-mono text-[11px] truncate">{ctx.pageUrl}</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
+
+                                        {/* USER JOURNEY BREADCRUMBS */}
+                                        {ctx.breadcrumbs && ctx.breadcrumbs.length > 0 && (
+                                            <div className="bg-white/3 border border-white/8 rounded-2xl p-6">
+                                                <div className="flex items-center gap-2 mb-6">
+                                                    <span className="text-purple-400 text-sm">🔍</span>
+                                                    <h3 className="font-syne font-bold text-white text-sm">User Journey</h3>
+                                                    <span className="text-white/40 text-[10px] ml-auto">
+                                                        {ctx.breadcrumbs.length} events before crash
+                                                    </span>
+                                                </div>
+
+                                                <div className="relative pl-2">
+                                                    {/* Vertical line */}
+                                                    <div className="absolute left-[13px] top-2 bottom-2 w-px bg-white/10" />
+
+                                                    <div className="space-y-4">
+                                                        {ctx.breadcrumbs.map((crumb: any, i: number) => {
+                                                            const isError = crumb.type === 'error';
+                                                            return (
+                                                                <div key={i} className="flex items-start gap-3 relative">
+                                                                    {/* Icon dot */}
+                                                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 z-10 text-[10px] border ${isError
+                                                                        ? 'bg-red-500/20 border-red-500/40'
+                                                                        : 'bg-white/5 border-white/10'
+                                                                        }`}>
+                                                                        {crumb.type === 'navigation' ? '🌐' :
+                                                                            crumb.type === 'click' ? '👆' :
+                                                                                crumb.type === 'fetch' ? (crumb.status >= 400 ? '🔴' : '🟢') :
+                                                                                    crumb.type === 'fetch_error' ? '🔴' :
+                                                                                        crumb.type === 'console_error' ? '⚠️' :
+                                                                                            crumb.type === 'console_warn' ? '💛' :
+                                                                                                crumb.type === 'page_load' ? '📄' :
+                                                                                                    crumb.type === 'error' ? '💥' : '•'}
+                                                                    </div>
+
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                                                                            <span className={`text-[10px] font-bold uppercase tracking-tight ${isError ? 'text-red-400' : 'text-white/40'}`}>
+                                                                                {crumb.type === 'navigation' ? 'Navigation' :
+                                                                                    crumb.type === 'click' ? 'Interaction' :
+                                                                                        crumb.type === 'fetch' ? `${crumb.method} Request` :
+                                                                                            crumb.type === 'fetch_error' ? 'Network Error' :
+                                                                                                crumb.type === 'console_error' ? 'Console Error' :
+                                                                                                    crumb.type === 'console_warn' ? 'Warning' :
+                                                                                                        crumb.type === 'page_load' ? 'Page Load' :
+                                                                                                            crumb.type === 'error' ? 'Crash' : crumb.type}
+                                                                            </span>
+                                                                            <span className="text-[10px] text-white/20 tabular-nums">
+                                                                                {crumb.secondsAgo === 0 ? 'now' : `-${crumb.secondsAgo}s`}
+                                                                            </span>
+                                                                        </div>
+                                                                        <p className={`text-xs truncate ${isError ? 'text-red-300/90 font-mono' : 'text-white/70'}`}>
+                                                                            {crumb.type === 'navigation' ? crumb.url :
+                                                                                crumb.type === 'click' ? crumb.element :
+                                                                                    crumb.type === 'fetch' || crumb.type === 'fetch_error' ? `${crumb.url} ${crumb.status ? '(' + crumb.status + ')' : ''}` :
+                                                                                        crumb.type === 'page_load' ? crumb.url :
+                                                                                            crumb.message || ''}
+                                                                        </p>
+                                                                        {crumb.type === 'fetch' && crumb.status >= 400 && (
+                                                                            <p className="text-[10px] text-red-400/80 mt-1 italic leading-tight">
+                                                                                Potentially triggered subsequent failure
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )
                             })() : entry.context ? (

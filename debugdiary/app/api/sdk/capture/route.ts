@@ -60,7 +60,7 @@ export async function POST(req: Request) {
             apiKey, error, stack, source,
             line, col, errorType, pageUrl,
             pageTitle, userAgent, timestamp,
-            appName
+            appName, breadcrumbs
         } = await req.json()
 
         if (!apiKey || !error) {
@@ -153,7 +153,8 @@ export async function POST(req: Request) {
                     col,
                     functionName: parsed.functionName,
                     capturedAt: timestamp,
-                    sdkErrorType: errorType
+                    sdkErrorType: errorType,
+                    breadcrumbs: breadcrumbs || []
                 }),
                 source: 'sdk',
                 errorType: detectErrorType(error),

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Shop App — Breadcrumb Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 40px;
+            background: #111;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            background: #333;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #444;
+            transform: translateY(-2px);
+        }
+
+        button.primary {
+            background: #00ff88;
+            color: black;
+        }
+
+        button.danger {
+            background: #ff4444;
+        }
+
+        .status {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>DebugDiary Breadcrumb Test 🔍</h1>
+    <p class="status">Perform actions below, then click "Crash App" to see the timeline.</p>
+
+    <div style="display: flex; gap: 10px;">
+        <button onclick="goToCart()">1. View Cart (Nav)</button>
+        <button onclick="checkout()" id="checkout-btn">2. Checkout (Fetch)</button>
+        <button class="danger" onclick="crash()">3. Crash App (Error)</button>
+    </div>
+
+    <!-- Replace with your Vercel URL and API Key -->
+    <script src="/sdk.js" data-key="YOUR_API_KEY_HERE" data-url="http://localhost:3000"
+        data-app="Shop App Journey Test">
+        </script>
+
+    <script>
+        function goToCart() {
+            history.pushState({}, '', '/cart');
+            console.log('Navigated to /cart');
+        }
+
+        function checkout() {
+            console.warn('Simulating high traffic during checkout...');
+            // Simulate failed API call
+            fetch('/api/checkout', {
+                method: 'POST'
+            }).catch(() => { });
+        }
+
+        function crash() {
+            const user = null;
+            console.error('CRITICAL: User session expired unexpectedly');
+            user.process(); // TypeError fires here
+        }
+    </script>
+</body>
+
+</html>
