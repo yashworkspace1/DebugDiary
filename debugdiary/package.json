@@ -49,7 +49,7 @@
     "typescript": "^5"
   },
   "overrides": {
-    "node-domexception": "npm:domexception@^4.0.0"
+    "fetch-blob": "^4.0.0"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
