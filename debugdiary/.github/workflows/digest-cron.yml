@@ -1,0 +1,18 @@
+name: Daily Digest Cron
+
+on:
+  schedule:
+    # 2:30 AM UTC = 8:00 AM IST (Morning Digest)
+    - cron: '30 2 * * *'
+    # 4:30 PM UTC = 10:00 PM IST (Evening Digest)
+    - cron: '30 16 * * *'
+  workflow_dispatch: # Allows you to run it manually from the Actions tab for testing
+
+jobs:
+  run-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Digest API
+        run: |
+          curl -X GET "https://debugdiary.vercel.app/api/cron/digest" \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
