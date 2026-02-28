@@ -8,6 +8,9 @@
 ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma)
 ![Vercel](https://img.shields.io/badge/Vercel-black?style=for-the-badge&logo=vercel)
 ![VS Code](https://img.shields.io/badge/VS_Code_Extension-007ACC?style=for-the-badge&logo=visualstudiocode)
+![SDK](https://img.shields.io/badge/JS_SDK-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Node.js](https://img.shields.io/badge/Node.js_SDK-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![Brevo](https://img.shields.io/badge/Brevo-0B996E?style=for-the-badge&logo=sendinblue&logoColor=white)
 
 </div>
 
@@ -16,7 +19,7 @@
 <div align="center">
 
 > **Stack Overflow helps strangers.**  
-> **DebugDiary helps your past self.**
+> **DebugDiary helps you.**
 
 </div>
 
@@ -53,11 +56,20 @@ Paste an error you're debugging. Before you waste time, DebugDiary checks your e
 ### 🔍 Semantic Search
 Search your journal by meaning, not keywords. Type "that weird CORS thing in Express" and find the entry — even if those exact words aren't in it. Powered by Gemini embeddings and cosine similarity.
 
-### ✦ AI Enrichment
-Every entry gets automatically enriched: plain-English summary, root cause explanation, auto-tags, language detection, difficulty rating. You paste error + fix. Gemini does the rest.
-
-### � VS Code Extension
+### 🔌 VS Code Extension
 Right-click any error in your editor or terminal. Save it in two inputs without leaving VS Code. Déjà Vu fires as a native VS Code notification — your past fix appears before you've opened a browser tab.
+
+### ⚡ JavaScript SDK
+One script tag. Any website. Errors captured automatically in the background. No code changes needed beyond the script tag. Breadcrumb timeline shows exactly what the user did before crashing.
+
+### 🟢 Node.js SDK
+One-time setup in any Express or Node.js app. Auto-captures uncaught exceptions, unhandled promise rejections, and every HTTP request as a breadcrumb. Server-side User Journey timeline included.
+
+### 🔁 Error Grouping
+Same error from multiple users or sessions gets grouped into one entry with occurrence count. Prevents dashboard noise. Tracks first seen, last seen, and affected pages.
+
+### � Twice-Daily Email Digest
+Morning (8AM) and Evening (10PM) digest emails in your timezone. Error summary, AI fixes, occurrence counts — waiting in your inbox. All clear email sent even when no errors occur.
 
 ---
 
@@ -84,6 +96,11 @@ Password: `demo2026`
 | Styling | Tailwind CSS + shadcn/ui |
 | Deployment | Vercel |
 | Extension | VS Code Extension API |
+| Email | Brevo |
+| JS SDK | Vanilla JS (public/sdk.js) |
+| Node SDK | CommonJS (public/sdk-node.js) |
+| Cron | GitHub Actions |
+| Rate Limiting | In-memory (lib/rateLimit.ts) |
 
 ---
 
@@ -183,6 +200,71 @@ Get your API key at:
 
 ---
 
+## JavaScript SDK
+
+Monitor any website with one line of code.
+
+### Install
+
+Add to any HTML file or web app:
+```html
+<script 
+  src="https://debugdiary.vercel.app/sdk.js"
+  data-key="your_api_key"
+  data-app="My App Name">
+</script>
+```
+
+### What Gets Captured Automatically
+
+| Event | Captured |
+|-------|---------|
+| Uncaught JS errors | ✅ |
+| Unhandled Promise rejections | ✅ |
+| Console errors | ✅ |
+| File + line number | ✅ |
+| Page URL + title | ✅ |
+| User journey (breadcrumbs) | ✅ |
+| AI enrichment + fix | ✅ |
+
+---
+
+## Node.js SDK
+
+Monitor any Express or Node.js app.
+
+### Install
+
+Download sdk-node.js from your SDK Setup page or directly:
+https://debugdiary.vercel.app/sdk-node.js
+
+### Setup (one time)
+```javascript
+const DebugDiary = require('./sdk-node.js')
+
+DebugDiary.init({
+  apiKey: 'your_api_key',
+  appName: 'My Express App'
+})
+
+// Add to Express (optional):
+app.use(DebugDiary.expressMiddleware())
+app.use(DebugDiary.errorMiddleware())
+```
+
+### What Gets Captured Automatically
+
+| Event | Captured |
+|-------|---------|
+| Uncaught exceptions | ✅ |
+| Unhandled rejections | ✅ |
+| Every HTTP request (breadcrumb) | ✅ |
+| Express errors | ✅ |
+| Node version + platform | ✅ |
+| User Journey timeline | ✅ |
+
+---
+
 ## Project Structure
 ```text
 debugdiary/
@@ -218,27 +300,55 @@ debugdiary/
 
 No vector database needed — cosine similarity computed in JavaScript. Fast enough for personal use.
 
+### How SDK Breadcrumbs Work
+
+1. SDK installs silently on any website
+2. Every click, navigation, and API call logged as a breadcrumb (max 20)
+3. When error fires — breadcrumbs sent alongside error to DebugDiary
+4. Entry detail shows full User Journey:
+   👆 Clicked "Checkout" → 
+   🔴 POST /api/cart failed (500) → 
+   💥 TypeError crashed
+
+No configuration. No manual tracking. Automatic from the moment SDK loads.
+
 ---
 
 ## Competitive Landscape
 
-| Tool | Purpose | Personal History | Semantic Search | Déjà Vu |
-|------|---------|-----------------|-----------------|---------|
-| Sentry | Production monitoring | ❌ | ❌ | ❌ |
-| Stack Overflow | Community Q&A | ❌ | ❌ | ❌ |
-| ChatGPT | General AI | ❌ | ❌ | ❌ |
-| Notion | Manual notes | ✅ | ❌ | ❌ |
-| **DebugDiary** | **Personal journal** | **✅** | **✅** | **✅** |
+| Tool | Purpose | Personal History | Semantic Search | Déjà Vu | Auto Capture | AI Fix |
+|------|---------|-----------------|-----------------|---------|-------------|--------|
+| Sentry | Production monitoring | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Stack Overflow | Community Q&A | ❌ | ❌ | ❌ | ❌ | ❌ |
+| ChatGPT | General AI | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Notion | Manual notes | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **DebugDiary** | **Error Intelligence** | **✅** | **✅** | **✅** | **✅** | **✅** |
 
 ---
 
 ## Roadmap
 
+### ✅ Shipped
+- [x] Personal error journal
+- [x] AI enrichment (why + fix)
+- [x] Semantic search
+- [x] Déjà Vu detection
+- [x] VS Code extension
+- [x] JavaScript SDK
+- [x] Node.js SDK
+- [x] Error grouping + deduplication
+- [x] Breadcrumb user journey timeline
+- [x] Twice-daily email digest
+- [x] Rate limiting
+
+### 🔜 Coming Soon
+- [ ] Per project isolation
 - [ ] Team mode — shared error library
-- [ ] GitHub integration — auto-log from PRs
-- [ ] Weekly digest — "Your top errors this week"
-- [ ] Error trend alerts — "You're hitting more TypeErrors lately"
-- [ ] Public profiles — share your debug patterns
+- [ ] Slack alerts
+- [ ] GitHub integration
+- [ ] Weekly trend reports
+- [ ] Python SDK
+- [ ] Public error library
 
 ---
 

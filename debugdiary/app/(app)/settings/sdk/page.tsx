@@ -162,8 +162,23 @@ curl -O https://debugdiary.vercel.app/sdk-node.js
                 </div>
 
                 {/* Step 2 */}
-                <div>
-                    <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">Step 2 — Initialize at app startup</p>
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-white/40 uppercase tracking-wider">Step 2 — Initialize at app startup</p>
+                        {apiKey && (
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(apiKey)
+                                    setCopied(true)
+                                    setTimeout(() => setCopied(false), 2000)
+                                }}
+                                className="text-[10px] flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-muted hover:text-white transition-all uppercase font-bold"
+                            >
+                                {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
+                                Copy API Key
+                            </button>
+                        )}
+                    </div>
                     <pre className="bg-[#0a0c10] border border-white/10 rounded-xl p-4 text-sm font-mono text-green-300 overflow-x-auto whitespace-pre-wrap">{`const DebugDiary = require('./sdk-node.js')
 
 DebugDiary.init({
@@ -175,7 +190,12 @@ DebugDiary.init({
                 {/* Step 3 */}
                 <div>
                     <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">Step 3 (Express only) — Add error middleware</p>
-                    <pre className="bg-[#0a0c10] border border-white/10 rounded-xl p-4 text-sm font-mono text-green-300 overflow-x-auto whitespace-pre-wrap">{`// Add AFTER all your routes
+                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl mb-3">
+                        <p className="text-xs text-amber-300/90 leading-relaxed">
+                            <span className="font-bold">IMPORTANT:</span> This middleware <span className="underline italic">must</span> be placed <strong>after</strong> all your routes and other middleware for it to capture errors correctly.
+                        </p>
+                    </div>
+                    <pre className="bg-[#0a0c10] border border-white/10 rounded-xl p-4 text-sm font-mono text-green-300 overflow-x-auto whitespace-pre-wrap">{`// Add this AFTER all your app.get(), app.post(), etc.
 app.use(DebugDiary.expressMiddleware())`}</pre>
                 </div>
 
