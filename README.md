@@ -78,8 +78,8 @@ Morning (8AM) and Evening (10PM) digest emails in your timezone. Error summary, 
 🌐 **Live:** https://debugdiary.vercel.app/ 
 
 Demo credentials:  
-Email:    `dev@debugdiary.com`  
-Password: `demo2026`
+Email:    `devdebugdiary@gmail.com`  
+Password: `demo2026` 
 
 ---
 
@@ -130,7 +130,9 @@ Password: `demo2026`
 
 - Node.js 18+
 - Supabase account (free tier works)
-- Google AI Studio API key (free tier)
+- Google AI Studio API key (for Gemini)
+- Brevo account (for email digests)
+- Google Cloud Project & GitHub OAuth App (for Social Login)
 
 ### Installation
 ```bash
@@ -147,13 +149,28 @@ cp .env.example .env.local
 
 ### Environment Variables
 
-Create `.env.local` with:
+Create `.env.local` based on `.env.example`:
 ```env
+# Database
 DATABASE_URL="your_supabase_pooled_url"
 DIRECT_URL="your_supabase_direct_url"
+
+# AI
 GEMINI_API_KEY="your_gemini_api_key"
+
+# Auth
 NEXTAUTH_SECRET="your_random_secret"
 NEXTAUTH_URL="http://localhost:3000"
+
+# Social Login (Optional)
+GOOGLE_CLIENT_ID="your_google_id"
+GOOGLE_CLIENT_SECRET="your_google_secret"
+GITHUB_CLIENT_ID="your_github_id"
+GITHUB_CLIENT_SECRET="your_github_secret"
+
+# Emails & Crons
+BREVO_API_KEY="your_brevo_api_key"
+CRON_SECRET="your_secure_cron_secret"
 ```
 
 ### Database Setup
@@ -360,4 +377,6 @@ VoidHack 2026
 
 ## License
 
-MIT — use it, fork it, improve it.
+**MIT License** — This project is open-source and free to use. You can copy it, modify it, and use it for your own projects (even commercially). All we ask is that you keep the original license notice. 
+
+Use it, fork it, improve it. Happy debugging! 🚀
