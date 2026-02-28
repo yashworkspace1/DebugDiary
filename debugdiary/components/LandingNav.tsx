@@ -20,8 +20,8 @@ export default function LandingNav() {
 
     return (
         <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled
-                ? "bg-[#040608]/85 backdrop-blur-md border-b border-white/5 py-0"
-                : "bg-transparent py-2"
+            ? "bg-[#040608]/85 backdrop-blur-md border-b border-white/5 py-0"
+            : "bg-transparent py-2"
             }`}>
             <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 group">
@@ -35,7 +35,7 @@ export default function LandingNav() {
                 <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted">
                     <a href="#features" className="hover:text-white transition-colors">Features</a>
                     <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
-                    <a href="#" className="hover:text-white transition-colors">For Devs</a>
+                    <Link href="/settings/sdk" className="hover:text-white transition-colors">For Devs</Link>
                 </div>
 
                 <div className="flex items-center gap-4">

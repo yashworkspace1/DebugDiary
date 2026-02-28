@@ -25,8 +25,8 @@ export default async function LandingPage() {
           <div className="max-w-[700px] flex flex-col items-start relative z-20">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue/30 bg-blue/10 mb-8 backdrop-blur-md">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              <span className="text-xs font-semibold text-blue/90 tracking-wide">
-                Semantic search · Déjà Vu detection · VS Code extension
+              <span className="text-xs font-semibold text-blue/90 tracking-wide line-clamp-1">
+                Semantic search · Déjà Vu detection · VS Code extension · JS SDK · Node.js SDK · Email Digest · Error Grouping · Breadcrumbs
               </span>
             </div>
 
@@ -63,6 +63,11 @@ export default async function LandingPage() {
               <div>
                 <p className="font-syne font-bold text-white text-xl">∞</p>
                 <p className="text-[10px] text-muted font-bold tracking-widest mt-1">ENTRIES FREE</p>
+              </div>
+              <div className="w-px h-8 bg-white/10"></div>
+              <div>
+                <p className="font-syne font-bold text-white text-xl">2x</p>
+                <p className="text-[10px] text-muted font-bold tracking-widest mt-1">DAILY DIGEST EMAILS</p>
               </div>
             </div>
           </div>
@@ -275,6 +280,81 @@ export default async function LandingPage() {
               <p className="text-lg text-muted leading-relaxed">
                 DebugDiary doesn't just store solutions. Every entry is automatically analyzed by AI to explain the root cause. Next time you see the same pattern, you'll recognize the underlying concept immediately.
               </p>
+            </div>
+          </div>
+
+          {/* New Feature: SDK Auto-Capture */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="relative">
+              <div className="absolute inset-0 bg-emerald-500/10 blur-[100px] rounded-full"></div>
+              <div className="bg-[#0c0f14] border border-white/10 rounded-2xl p-8 relative z-10 shadow-2xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-2xl">⚡</div>
+                  <div>
+                    <span className="text-xs font-bold text-emerald-400 tracking-widest uppercase">SDK AUTO-CAPTURE</span>
+                    <h4 className="text-white font-bold text-xl">One tag. Any website.</h4>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-black/60 rounded-xl p-4 border border-white/5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span className="text-xs font-mono text-white/50">User Journey Timeline</span>
+                    </div>
+                    <div className="space-y-2 text-[11px] font-mono text-white/40">
+                      <div>👆 Clicked "Checkout"</div>
+                      <div>📍 Navigated to /api/payment</div>
+                      <div className="text-red-400/80">💥 TypeError: auth is null</div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted leading-relaxed">
+                    Add one script tag to any website. Errors captured silently in background. Full user journey timeline included. Zero configuration.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div>
+              <span className="text-blue font-bold text-sm tracking-widest uppercase mb-4 block">⚡ SDK ENGINE</span>
+              <h2 className="font-syne font-bold text-4xl text-white mb-6 leading-tight">Stop manually logging.<br />Just watch it happen.</h2>
+              <p className="text-lg text-muted leading-relaxed">
+                Our lightweight SDKs for JavaScript and Node.js give you a "black box" recorder for your app. See exactly what your users did leading up to a crash, with zero manual `console.log` statements.
+              </p>
+            </div>
+          </div>
+
+          {/* New Feature: Daily Digest */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="order-2 lg:order-1">
+              <span className="text-blue font-bold text-sm tracking-widest uppercase mb-4 block">📧 SMART ALERTS</span>
+              <h2 className="font-syne font-bold text-4xl text-white mb-6 leading-tight">Your inbox is your<br />new dashboard.</h2>
+              <p className="text-lg text-muted leading-relaxed">
+                Stay updated without checking tabs. Get beautiful morning and evening summaries of your production health. AI-summarized fixes included, so you know exactly what to fix before you even open your laptop.
+              </p>
+            </div>
+            <div className="order-1 lg:order-2 relative">
+              <div className="absolute inset-0 bg-blue/10 blur-[100px] rounded-full"></div>
+              <div className="bg-[#0c0f14] border border-white/10 rounded-2xl p-8 relative z-10 shadow-2xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-xl bg-blue/10 border border-blue/20 flex items-center justify-center text-2xl">📧</div>
+                  <div>
+                    <span className="text-xs font-bold text-blue tracking-widest uppercase">DAILY DIGEST</span>
+                    <h4 className="text-white font-bold text-xl">8AM and 10PM.</h4>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <p className="text-[13px] text-white/90 font-medium mb-1">Morning Snapshot</p>
+                    <p className="text-xs text-muted mb-3">3 new errors detected overnight</p>
+                    <div className="flex gap-2">
+                      <span className="text-[10px] bg-red-500/20 text-red-300 px-2 py-0.5 rounded border border-red-500/20">2 Critical</span>
+                      <span className="text-[10px] bg-blue/20 text-blue px-2 py-0.5 rounded border border-blue/20">1 Fix Ready</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted leading-relaxed">
+                    Morning and evening error summaries delivered to your inbox in your timezone. AI fixes waiting with your coffee. All clear email when nothing breaks.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 

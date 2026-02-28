@@ -329,6 +329,35 @@ No vector database needed — cosine similarity computed in JavaScript. Fast eno
 
 No configuration. No manual tracking. Automatic from the moment SDK loads.
 
+## Key Technical Decisions
+
+### Cosine Similarity over Vector Database
+Déjà Vu uses cosine similarity computed in JavaScript instead of Pinecone or pgvector. Simpler stack, zero extra cost, fast enough for personal journal scale. No external vector DB dependency.
+
+### Gemini over GPT-4
+Free tier with 1000 RPD for embeddings and generous Flash limits. Single API handles both enrichment and embeddings. Keeps the stack simple and cost zero for demo and early users.
+
+### Next.js over MERN
+MERN is preferred stack but Next.js App Router with Supabase PostgreSQL is more suitable here. Relational data (users, entries, API keys, projects) fits SQL better than MongoDB. Server components reduce client bundle size.
+
+### SDK Architecture over Manual Only
+Three input methods — web form, VS Code extension, JavaScript SDK, Node.js SDK. Passive capture removes friction. Developers log more errors when it requires zero effort. Same API, same database, same AI pipeline for all sources.
+
+### Fire-and-Forget AI Enrichment
+AI enrichment runs in a background async block after the entry is saved. Response returns immediately to the user. Enrichment completes in ~15 seconds without blocking the UI. Entry polls for updates automatically.
+
+### JWT Sessions over Database Sessions
+Stateless sessions work perfectly with Vercel serverless functions. No session table overhead. No connection pool issues from session reads on every request.
+
+### Prisma + pgbouncer for Serverless
+Vercel spins up a new function instance per request. Without pgbouncer, connection pool exhausts quickly. connection_limit=1 per function instance with pgbouncer pooling solves this cleanly without upgrading Supabase plan.
+
+### In-Memory Rate Limiting
+Rate limiting uses a JavaScript Map instead of Redis. Resets on cold start which happens every ~5 minutes on Vercel free tier. Good enough for abuse prevention without adding Redis cost or complexity.
+
+### GitHub Actions over Vercel Cron
+Vercel free tier allows only one cron job. GitHub Actions free tier allows unlimited scheduled workflows. Two digest emails per day (8AM + 10PM) scheduled via GitHub Actions, calling the Vercel API endpoint directly.
+
 ---
 
 ## Competitive Landscape
@@ -371,12 +400,8 @@ No configuration. No manual tracking. Automatic from the moment SDK loads.
 
 ## Built For
 
-VoidHack 2026
-
----
-
-## License
-
-**MIT License** — This project is open-source and free to use. You can copy it, modify it, and use it for your own projects (even commercially). All we ask is that you keep the original license notice. 
+VoidHack 2026 
 
 Use it, fork it, improve it. Happy debugging! 🚀
+
+---
