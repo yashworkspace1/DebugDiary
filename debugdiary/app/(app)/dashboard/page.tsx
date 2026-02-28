@@ -212,7 +212,11 @@ export default function DashboardPage() {
                         <div className="h-[250px] flex items-center justify-center text-muted text-sm border border-white/5 border-dashed rounded-xl">No error types logged</div>
                     ) : (
                         <div className="h-[250px] relative">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-[-20px] z-0">
+                                <span className="text-3xl font-syne font-bold">{stats.total}</span>
+                                <span className="text-[10px] text-muted uppercase tracking-widest mt-0.5">errors</span>
+                            </div>
+                            <ResponsiveContainer width="100%" height="100%" className="relative z-10">
                                 <PieChart>
                                     <Pie
                                         data={byErrorType}
@@ -237,10 +241,6 @@ export default function DashboardPage() {
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-[-20px] z-0">
-                                <span className="text-3xl font-syne font-bold">{stats.total}</span>
-                                <span className="text-[10px] text-muted uppercase tracking-widest mt-0.5">errors</span>
-                            </div>
                         </div>
                     )}
                 </div>
