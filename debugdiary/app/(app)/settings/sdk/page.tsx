@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
-import { Copy, Check, Zap, Globe, TerminalSquare, ExternalLink } from "lucide-react"
+import { Copy, Check, Zap, Globe, TerminalSquare, ExternalLink, Download } from "lucide-react"
 
 export default function SDKSetupPage() {
     const { data: session } = useSession()
@@ -151,6 +151,14 @@ export default function SDKSetupPage() {
                     <pre className="bg-[#0a0c10] border border-white/10 rounded-xl p-4 text-sm font-mono text-green-300 overflow-x-auto whitespace-pre-wrap">{`# Download sdk-node.js and place it in your project root
 curl -O https://debugdiary.vercel.app/sdk-node.js
 # or just copy it manually from the URL above`}</pre>
+                    <a
+                        href="https://debugdiary.vercel.app/sdk-node.js"
+                        download="sdk-node.js"
+                        className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 hover:border-green-500/40 text-green-400 hover:text-green-300 text-sm font-medium transition-all"
+                    >
+                        <Download className="h-4 w-4" />
+                        Download sdk-node.js
+                    </a>
                 </div>
 
                 {/* Step 2 */}
