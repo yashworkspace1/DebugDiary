@@ -35,7 +35,7 @@ export default function LandingNav() {
                 <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted">
                     <a href="#features" className="hover:text-white transition-colors">Features</a>
                     <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
-                    <Link href="/settings/sdk" className="hover:text-white transition-colors">For Devs</Link>
+                    <a href="#for-devs" className="hover:text-white transition-colors">For Devs</a>
                 </div>
 
                 <div className="flex items-center gap-4">
