@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { enrichEntry, generateEmbedding } from '@/lib/gemini'
+import { checkRateLimit } from '@/lib/rateLimit'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -75,6 +76,15 @@ export async function POST(req: Request) {
 
         if (!keyRecord) {
             return NextResponse.json({ error: 'Invalid API key' }, { status: 401, headers: corsHeaders })
+        }
+
+        // Rate limit check (100 errors/hour per key, 10 identical errors/hour)
+        const rateCheck = checkRateLimit(apiKey, error)
+        if (!rateCheck.allowed) {
+            return NextResponse.json(
+                { captured: false, reason: rateCheck.reason },
+                { status: 429, headers: corsHeaders }
+            )
         }
 
         // Error grouping — check for existing similar entry

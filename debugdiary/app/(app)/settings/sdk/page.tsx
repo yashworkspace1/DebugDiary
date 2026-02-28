@@ -134,6 +134,79 @@ export default function SDKSetupPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Node.js / Express SDK */}
+            <div className="bg-[#0c0f14] border border-white/5 rounded-2xl p-6 space-y-5">
+                <div>
+                    <h3 className="font-syne font-bold text-lg text-white mb-1 flex items-center gap-2">
+                        <TerminalSquare className="h-5 w-5 text-green-400" />
+                        Node.js / Express
+                    </h3>
+                    <p className="text-sm text-muted">Capture server-side errors from any Node.js app or Express API</p>
+                </div>
+
+                {/* Step 1 */}
+                <div>
+                    <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">Step 1 — Download the SDK</p>
+                    <pre className="bg-[#0a0c10] border border-white/10 rounded-xl p-4 text-sm font-mono text-green-300 overflow-x-auto whitespace-pre-wrap">{`# Download sdk-node.js and place it in your project root
+curl -O https://debugdiary.vercel.app/sdk-node.js
+# or just copy it manually from the URL above`}</pre>
+                </div>
+
+                {/* Step 2 */}
+                <div>
+                    <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">Step 2 — Initialize at app startup</p>
+                    <pre className="bg-[#0a0c10] border border-white/10 rounded-xl p-4 text-sm font-mono text-green-300 overflow-x-auto whitespace-pre-wrap">{`const DebugDiary = require('./sdk-node.js')
+
+DebugDiary.init({
+  apiKey: '${apiKey || 'YOUR_API_KEY'}',
+  appName: 'My Express App'
+})`}</pre>
+                </div>
+
+                {/* Step 3 */}
+                <div>
+                    <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">Step 3 (Express only) — Add error middleware</p>
+                    <pre className="bg-[#0a0c10] border border-white/10 rounded-xl p-4 text-sm font-mono text-green-300 overflow-x-auto whitespace-pre-wrap">{`// Add AFTER all your routes
+app.use(DebugDiary.expressMiddleware())`}</pre>
+                </div>
+
+                {/* Step 4 */}
+                <div>
+                    <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">Step 4 — Manual capture anywhere</p>
+                    <pre className="bg-[#0a0c10] border border-white/10 rounded-xl p-4 text-sm font-mono text-green-300 overflow-x-auto whitespace-pre-wrap">{`try {
+  await riskyDatabaseOperation()
+} catch (err) {
+  DebugDiary.captureError(err, {
+    route: '/api/payment',
+    method: 'POST'
+  })
+}`}</pre>
+                </div>
+
+                {/* What gets captured */}
+                <div>
+                    <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">What gets captured automatically</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {[
+                            '✓ Uncaught exceptions',
+                            '✓ Unhandled promise rejections',
+                            '✓ Express errors (with middleware)',
+                            '✓ Node.js version + platform info',
+                            '✓ Route + HTTP method',
+                            '✓ AI enrichment + fix suggestion',
+                        ].map(f => (
+                            <div key={f} className="text-sm text-white/70">{f}</div>
+                        ))}
+                    </div>
+                </div>
+
+                {!apiKey && (
+                    <p className="text-xs text-amber-400/80">
+                        ⚠️ No API key found. Create one in <a href="/settings/api-keys" className="underline hover:text-amber-300">API Keys</a> first.
+                    </p>
+                )}
+            </div>
         </div>
     )
 }
