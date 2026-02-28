@@ -122,6 +122,13 @@ Password: `demo2026`
 
 <img width="1919" height="1079" alt="Screenshot 2026-02-26 143315" src="https://github.com/user-attachments/assets/a6a8b0d9-e652-432a-b3b0-f7f9d668bc09" />
 
+**SDK Setup**
+
+<img width="1919" height="918" alt="Screenshot 2026-02-28 183223" src="https://github.com/user-attachments/assets/83a81642-4999-4c00-a9db-416eddbff375" />
+
+
+<img width="1919" height="921" alt="image" src="https://github.com/user-attachments/assets/397c5904-9657-45ee-a6ec-e9b161104bbf" />
+
 ---
 
 ## Getting Started
@@ -401,6 +408,7 @@ Vercel free tier allows only one cron job. GitHub Actions free tier allows unlim
 ## Built For
 
 VoidHack 2026 
+Built solo by Yash Kumar
 
 Use it, fork it, improve it. Happy debugging! 🚀
 
