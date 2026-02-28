@@ -42,7 +42,7 @@ export default function LoginPage() {
     }
 
     const fillDemo = () => {
-        setEmail("dev@debugdiary.com")
+        setEmail("devdebugdiary@gmail.com")
         setPassword("demo2026")
     }
 
@@ -160,7 +160,7 @@ export default function LoginPage() {
                     {showDemo && (
                         <div className="mt-3 bg-white/[0.03] border border-white/5 rounded-lg p-3 text-left animate-in slide-in-from-top-1 duration-200">
                             <div className="flex flex-col gap-1.5 mb-3 text-sm font-mono opacity-80">
-                                <p>📧 dev@debugdiary.com</p>
+                                <p>📧 devdebugdiary@gmail.com</p>
                                 <p>🔑 demo2026</p>
                             </div>
                             <button
