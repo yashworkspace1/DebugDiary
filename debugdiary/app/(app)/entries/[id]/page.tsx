@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Trash2, Edit2, Copy, Sparkles, Loader2, Globe, TerminalSquare, Zap } from "lucide-react"
+import { ArrowLeft, Trash2, Edit2, Copy, Sparkles, Loader2, Globe, TerminalSquare, Zap, X } from "lucide-react"
 import { useToast } from "@/components/Toast"
 import { useEnrichmentPoller } from "@/hooks/useEnrichmentPoller"
 import { languageColors, errorTypeColors, difficultyConfig } from "@/lib/badges"
 import CodeMirror from '@uiw/react-codemirror'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { javascript } from '@codemirror/lang-javascript'
+import * as Dialog from '@radix-ui/react-dialog'
 
 export default function EntryDetailPage() {
     const params = useParams()
@@ -18,6 +19,7 @@ export default function EntryDetailPage() {
 
     const [initialEntry, setInitialEntry] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const [journeyOpen, setJourneyOpen] = useState(false)
 
     // Fetch initial entry
     useEffect(() => {
@@ -341,76 +343,116 @@ export default function EntryDetailPage() {
                                         </div>
 
                                         {/* USER JOURNEY BREADCRUMBS */}
-                                        {ctx.breadcrumbs && ctx.breadcrumbs.length > 0 && (
-                                            <div className="bg-white/3 border border-white/8 rounded-2xl p-6">
-                                                <div className="flex items-center gap-2 mb-6">
-                                                    <span className="text-purple-400 text-sm">🔍</span>
-                                                    <h3 className="font-syne font-bold text-white text-sm">User Journey</h3>
-                                                    <span className="text-white/40 text-[10px] ml-auto">
-                                                        {ctx.breadcrumbs.length} events before crash
-                                                    </span>
-                                                </div>
+                                        {ctx.breadcrumbs && ctx.breadcrumbs.length > 0 && (() => {
+                                            const all = ctx.breadcrumbs as any[]
+                                            const preview = all.slice(-5)
+                                            const hasMore = all.length > 5
 
-                                                <div className="relative pl-2">
-                                                    {/* Vertical line */}
-                                                    <div className="absolute left-[13px] top-2 bottom-2 w-px bg-white/10" />
+                                            const renderCrumb = (crumb: any, i: number) => {
+                                                const isError = crumb.type === 'error'
+                                                return (
+                                                    <div key={i} className="flex items-start gap-3 relative">
+                                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 z-10 text-[10px] border ${isError ? 'bg-red-500/20 border-red-500/40' : 'bg-white/5 border-white/10'}`}>
+                                                            {crumb.type === 'navigation' ? '🌐' :
+                                                                crumb.type === 'click' ? '👆' :
+                                                                    crumb.type === 'fetch' ? (crumb.status >= 400 ? '🔴' : '🟢') :
+                                                                        crumb.type === 'fetch_error' ? '🔴' :
+                                                                            crumb.type === 'console_error' ? '⚠️' :
+                                                                                crumb.type === 'console_warn' ? '💛' :
+                                                                                    crumb.type === 'page_load' ? '📄' :
+                                                                                        crumb.type === 'error' ? '💥' : '•'}
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center justify-between gap-2 mb-0.5">
+                                                                <span className={`text-[10px] font-bold uppercase tracking-tight ${isError ? 'text-red-400' : 'text-white/40'}`}>
+                                                                    {crumb.type === 'navigation' ? 'Navigation' :
+                                                                        crumb.type === 'click' ? 'Interaction' :
+                                                                            crumb.type === 'fetch' ? `${crumb.method} Request` :
+                                                                                crumb.type === 'fetch_error' ? 'Network Error' :
+                                                                                    crumb.type === 'console_error' ? 'Console Error' :
+                                                                                        crumb.type === 'console_warn' ? 'Warning' :
+                                                                                            crumb.type === 'page_load' ? 'Page Load' :
+                                                                                                crumb.type === 'error' ? 'Crash' : crumb.type}
+                                                                </span>
+                                                                <span className="text-[10px] text-white/20 tabular-nums">
+                                                                    {crumb.secondsAgo === 0 ? 'now' : `-${crumb.secondsAgo}s`}
+                                                                </span>
+                                                            </div>
+                                                            <p className={`text-xs truncate ${isError ? 'text-red-300/90 font-mono' : 'text-white/70'}`}>
+                                                                {crumb.type === 'navigation' ? crumb.url :
+                                                                    crumb.type === 'click' ? crumb.element :
+                                                                        crumb.type === 'fetch' || crumb.type === 'fetch_error' ? `${crumb.url} ${crumb.status ? '(' + crumb.status + ')' : ''}` :
+                                                                            crumb.type === 'page_load' ? crumb.url :
+                                                                                crumb.message || ''}
+                                                            </p>
+                                                            {crumb.type === 'fetch' && crumb.status >= 400 && (
+                                                                <p className="text-[10px] text-red-400/80 mt-1 italic leading-tight">Potentially triggered subsequent failure</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            }
 
-                                                    <div className="space-y-4">
-                                                        {ctx.breadcrumbs.map((crumb: any, i: number) => {
-                                                            const isError = crumb.type === 'error';
-                                                            return (
-                                                                <div key={i} className="flex items-start gap-3 relative">
-                                                                    {/* Icon dot */}
-                                                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 z-10 text-[10px] border ${isError
-                                                                        ? 'bg-red-500/20 border-red-500/40'
-                                                                        : 'bg-white/5 border-white/10'
-                                                                        }`}>
-                                                                        {crumb.type === 'navigation' ? '🌐' :
-                                                                            crumb.type === 'click' ? '👆' :
-                                                                                crumb.type === 'fetch' ? (crumb.status >= 400 ? '🔴' : '🟢') :
-                                                                                    crumb.type === 'fetch_error' ? '🔴' :
-                                                                                        crumb.type === 'console_error' ? '⚠️' :
-                                                                                            crumb.type === 'console_warn' ? '💛' :
-                                                                                                crumb.type === 'page_load' ? '📄' :
-                                                                                                    crumb.type === 'error' ? '💥' : '•'}
+                                            return (
+                                                <div className="bg-white/3 border border-white/8 rounded-2xl p-6">
+                                                    <div className="flex items-center gap-2 mb-5">
+                                                        <span className="text-purple-400 text-sm">🔍</span>
+                                                        <h3 className="font-syne font-bold text-white text-sm">User Journey</h3>
+                                                        <span className="text-white/40 text-[10px] ml-auto">{all.length} events before crash</span>
+                                                    </div>
+
+                                                    {/* Preview: last 5 */}
+                                                    <div className="relative pl-2">
+                                                        <div className="absolute left-[13px] top-2 bottom-2 w-px bg-white/10" />
+                                                        <div className="space-y-4">
+                                                            {hasMore && (
+                                                                <div className="flex items-center gap-2 pl-7 py-0.5">
+                                                                    <span className="text-white/20 text-[10px] italic">{all.length - 5} earlier events hidden…</span>
+                                                                </div>
+                                                            )}
+                                                            {preview.map(renderCrumb)}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Show more button */}
+                                                    {hasMore && (
+                                                        <button
+                                                            onClick={() => setJourneyOpen(true)}
+                                                            className="mt-4 w-full text-xs text-purple-400 hover:text-purple-300 border border-purple-500/20 hover:border-purple-400/40 bg-purple-500/5 hover:bg-purple-500/10 rounded-lg py-2 transition-all font-medium"
+                                                        >
+                                                            View Full Journey ({all.length} events) →
+                                                        </button>
+                                                    )}
+
+                                                    {/* Full journey modal */}
+                                                    <Dialog.Root open={journeyOpen} onOpenChange={setJourneyOpen}>
+                                                        <Dialog.Portal>
+                                                            <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-in fade-in duration-200" />
+                                                            <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg max-h-[85vh] flex flex-col bg-[#0c0f14] border border-white/10 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                                                                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-purple-400">🔍</span>
+                                                                        <Dialog.Title className="font-syne font-bold text-white">Full User Journey</Dialog.Title>
+                                                                        <span className="text-white/40 text-xs ml-1">({all.length} events)</span>
                                                                     </div>
-
-                                                                    <div className="min-w-0 flex-1">
-                                                                        <div className="flex items-center justify-between gap-2 mb-0.5">
-                                                                            <span className={`text-[10px] font-bold uppercase tracking-tight ${isError ? 'text-red-400' : 'text-white/40'}`}>
-                                                                                {crumb.type === 'navigation' ? 'Navigation' :
-                                                                                    crumb.type === 'click' ? 'Interaction' :
-                                                                                        crumb.type === 'fetch' ? `${crumb.method} Request` :
-                                                                                            crumb.type === 'fetch_error' ? 'Network Error' :
-                                                                                                crumb.type === 'console_error' ? 'Console Error' :
-                                                                                                    crumb.type === 'console_warn' ? 'Warning' :
-                                                                                                        crumb.type === 'page_load' ? 'Page Load' :
-                                                                                                            crumb.type === 'error' ? 'Crash' : crumb.type}
-                                                                            </span>
-                                                                            <span className="text-[10px] text-white/20 tabular-nums">
-                                                                                {crumb.secondsAgo === 0 ? 'now' : `-${crumb.secondsAgo}s`}
-                                                                            </span>
+                                                                    <Dialog.Close className="text-white/40 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
+                                                                        <X className="h-4 w-4" />
+                                                                    </Dialog.Close>
+                                                                </div>
+                                                                <div className="overflow-y-auto px-6 py-4">
+                                                                    <div className="relative pl-2">
+                                                                        <div className="absolute left-[13px] top-2 bottom-2 w-px bg-white/10" />
+                                                                        <div className="space-y-4">
+                                                                            {all.map(renderCrumb)}
                                                                         </div>
-                                                                        <p className={`text-xs truncate ${isError ? 'text-red-300/90 font-mono' : 'text-white/70'}`}>
-                                                                            {crumb.type === 'navigation' ? crumb.url :
-                                                                                crumb.type === 'click' ? crumb.element :
-                                                                                    crumb.type === 'fetch' || crumb.type === 'fetch_error' ? `${crumb.url} ${crumb.status ? '(' + crumb.status + ')' : ''}` :
-                                                                                        crumb.type === 'page_load' ? crumb.url :
-                                                                                            crumb.message || ''}
-                                                                        </p>
-                                                                        {crumb.type === 'fetch' && crumb.status >= 400 && (
-                                                                            <p className="text-[10px] text-red-400/80 mt-1 italic leading-tight">
-                                                                                Potentially triggered subsequent failure
-                                                                            </p>
-                                                                        )}
                                                                     </div>
                                                                 </div>
-                                                            );
-                                                        })}
-                                                    </div>
+                                                            </Dialog.Content>
+                                                        </Dialog.Portal>
+                                                    </Dialog.Root>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )
+                                        })()}
                                     </div>
                                 )
                             })() : entry.context ? (
