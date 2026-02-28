@@ -1,11 +1,8 @@
-import * as Brevo from '@getbrevo/brevo'
+import { BrevoClient } from '@getbrevo/brevo'
 
-const apiInstance = new Brevo.TransactionalEmailsApi()
-
-apiInstance.setApiKey(
-    Brevo.TransactionalEmailsApiApiKeys.apiKey,
-    process.env.BREVO_API_KEY!
-)
+const apiInstance = new BrevoClient({
+    apiKey: process.env.BREVO_API_KEY!
+})
 
 export async function sendEmail(
     to: string,
@@ -13,7 +10,7 @@ export async function sendEmail(
     htmlContent: string
 ) {
     try {
-        await apiInstance.sendTransacEmail({
+        await apiInstance.transactionalEmails.sendTransacEmail({
             sender: {
                 email: 'yashsaxena2110@gmail.com',
                 name: 'DebugDiary'
