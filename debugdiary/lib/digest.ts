@@ -1,7 +1,5 @@
-import { Resend } from 'resend'
+import { sendEmail } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 type DigestType = 'morning' | 'evening'
 
@@ -123,12 +121,11 @@ export async function sendDigest(userId: string, type: DigestType) {
 </body>
 </html>`
 
-  await resend.emails.send({
-    from: 'DebugDiary <onboarding@resend.dev>',
-    to: user.email,
+  await sendEmail(
+    user.email,
     subject,
-    html: emailHtml
-  })
+    emailHtml
+  )
 
   // Update last digest timestamp
   await prisma.user.update({
