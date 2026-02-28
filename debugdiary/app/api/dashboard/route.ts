@@ -23,7 +23,9 @@ export async function GET(req: Request) {
         aiEnriched: true,
         source: true,
         createdAt: true,
-        updatedAt: true
+        updatedAt: true,
+        occurrences: true,
+        lastSeenAt: true
     }
 
     const [entries, recentEntries] = await Promise.all([
@@ -156,7 +158,9 @@ export async function GET(req: Request) {
         mostRecurring
     }, {
         headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate'
+            'Cache-Control': 's-maxage=30, stale-while-revalidate=60'
         }
     })
 }
+
+

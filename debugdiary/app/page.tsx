@@ -361,6 +361,73 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* FOR DEVS QUICK START */}
+      <section id="for-devs" className="relative z-10 py-32 bg-blue/[0.02]">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <span className="text-xs font-bold text-blue tracking-[0.2em] uppercase mb-4 block">FOR DEVELOPERS</span>
+            <h2 className="font-syne font-extrabold text-4xl md:text-5xl text-white mb-6">Add DebugDiary to any app<br />in 60 seconds</h2>
+            <p className="text-muted text-lg max-w-2xl mx-auto">No complex SDKs to install. Just drop a tag and watch your dashboard fill with actionable insights.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Steps List */}
+            <div className="space-y-4">
+              {[
+                { step: "Step 1", icon: "👤", title: "Create account", desc: "Sign up free at debugdiary.vercel.app" },
+                { step: "Step 2", icon: "🔑", title: "Get your API key", desc: "Settings → API Keys → Generate Key" },
+                { step: "Step 3", icon: "⚡", title: "Add one line", desc: "Paste script tag on any website. Done." },
+                { step: "Step 4", icon: "📊", title: "Watch your journal fill", desc: "Errors appear automatically. AI enriches each one." }
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-start gap-4 p-4 rounded-2xl border border-white/5 hover:border-white/10 hover:bg-white/[0.02] transition-all group">
+                  <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-bold text-blue uppercase tracking-widest">{item.step}</span>
+                      <h4 className="text-white font-bold">{item.title}</h4>
+                    </div>
+                    <p className="text-sm text-muted leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Code Snippet Box */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue/10 blur-[100px] rounded-full"></div>
+              <div className="bg-[#0c0f14] border border-white/10 rounded-2xl overflow-hidden relative z-20 shadow-2xl">
+                <div className="bg-white/5 px-4 py-2 border-b border-white/5 flex items-center justify-between">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500/50"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/50"></div>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted uppercase tracking-widest">index.html</span>
+                </div>
+                <div className="p-6 overflow-x-auto">
+                  <pre className="font-mono text-sm leading-relaxed text-blue-100/70">
+                    <code>
+                      {`<script 
+  src="https://debugdiary.vercel.app/sdk.js"
+  data-key="your_api_key"
+  data-app="My App">
+</script>`}
+                    </code>
+                  </pre>
+                </div>
+                <div className="bg-blue/5 p-4 border-t border-white/5 flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-blue animate-pulse"></div>
+                  <span className="text-xs text-blue-200/60 font-medium">Auto-captures all runtime errors & console.errors</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
       {/* CTA SECTION */}
       <section className="relative z-10 py-32 border-t border-white/5 overflow-hidden">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[radial-gradient(ellipse_60%_60%_at_50%_50%,rgba(59,130,246,0.1)_0%,transparent_70%)] pointer-events-none"></div>
