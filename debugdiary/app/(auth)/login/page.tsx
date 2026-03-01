@@ -1,20 +1,37 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Eye, EyeOff, Loader2, ChevronDown } from "lucide-react"
 import Constellation from "@/components/Constellation"
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const [showDemo, setShowDemo] = useState(false)
+
+    // Read error from URL (e.g. after cancelling GitHub OAuth) and clean it up
+    useEffect(() => {
+        const urlError = searchParams.get("error")
+        if (urlError) {
+            if (urlError === "Callback" || urlError === "OAuthCallback") {
+                setError("Sign-in was cancelled. Please try again.")
+            } else if (urlError === "OAuthAccountNotLinked") {
+                setError("This email is already registered with a different sign-in method.")
+            } else {
+                setError("Sign-in failed. Please try again.")
+            }
+            // Clean the URL so users can retry without being stuck
+            window.history.replaceState({}, "", "/login")
+        }
+    }, [searchParams])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -185,5 +202,13 @@ export default function LoginPage() {
 
             </div>
         </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={null}>
+            <LoginForm />
+        </Suspense>
     )
 }
