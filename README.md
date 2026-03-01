@@ -291,25 +291,46 @@ app.use(DebugDiary.errorMiddleware())
 
 ## Project Structure
 ```text
-debugdiary/
-├── app/
-│   ├── (auth)/          # Login, signup pages
-│   ├── (app)/           # Dashboard, entries, search
-│   └── api/             # All API routes
-├── components/          # Reusable UI components
-├── lib/
-│   ├── gemini.ts        # AI enrichment + embeddings
-│   ├── prisma.ts        # Database client
-│   └── badges.ts        # Color config
-├── prisma/
-│   ├── schema.prisma    # Database schema
-│   └── seed.ts          # Demo data
-└── debugdiary-extension/ # VS Code extension
+DebugDiary/
+├── .github/
+│   └── workflows/
+│       └── digest-cron.yml   # GitHub Actions cron (8AM + 10PM IST)
+├── debugdiary/               # Next.js application
+│   ├── app/
+│   │   ├── (auth)/           # Login, signup pages
+│   │   ├── (app)/            # Dashboard, entries, search, settings
+│   │   └── api/
+│   │       ├── dashboard/    # Dashboard stats API
+│   │       ├── entries/      # CRUD + Déjà Vu + search
+│   │       ├── sdk/          # SDK capture endpoint
+│   │       ├── extension/    # VS Code extension API
+│   │       ├── settings/     # Profile + digest settings
+│   │       ├── cron/         # Email digest trigger
+│   │       └── auth/         # NextAuth routes
+│   ├── components/           # Reusable UI components
+│   ├── hooks/                # Custom React hooks
+│   ├── lib/
+│   │   ├── gemini.ts         # AI enrichment + embeddings
+│   │   ├── prisma.ts         # Database client
+│   │   ├── digest.ts         # Email digest HTML builder
+│   │   ├── digestScheduler.ts# Time-based digest scheduler
+│   │   ├── email.ts          # Brevo email sender
+│   │   ├── rateLimit.ts      # SDK rate limiting
+│   │   ├── badges.ts         # Color config
+│   │   └── utils.ts          # Shared utilities
+│   ├── public/
+│   │   ├── sdk.js            # Universal browser SDK (script tag)
+│   │   └── sdk-node.js       # Node.js SDK
+│   └── prisma/
+│       ├── schema.prisma     # Database schema
+│       └── seed.ts           # Demo data
+└── debugdiary-extension/     # VS Code extension
     └── src/
-        ├── extension.ts  # Commands + activation
-        ├── api.ts        # API calls to backend
-        └── auth.ts       # Key storage
+        ├── extension.ts      # Commands + activation
+        ├── api.ts            # API calls to backend
+        └── auth.ts           # Key storage
 ```
+
 
 ---
 
