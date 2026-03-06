@@ -2,17 +2,27 @@ name: Daily Digest Cron
 
 on:
   schedule:
-    # 2:30 AM UTC = 8:00 AM IST (Morning Digest)
+    # 2:30 AM UTC = ~8:00 AM IST (Morning Digest)
     - cron: '30 2 * * *'
-    # 4:30 PM UTC = 10:00 PM IST (Evening Digest)
+    # 4:30 PM UTC = ~10:00 PM IST (Evening Digest)
     - cron: '30 16 * * *'
-  workflow_dispatch: # Allows you to run it manually from the Actions tab for testing
+  workflow_dispatch: # Allows manual trigger from the Actions tab for testing
 
 jobs:
-  run-digest:
+  run-morning-digest:
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && contains(github.event.schedule, '30 2'))
     steps:
-      - name: Ping Digest API
+      - name: Send Morning Digest
         run: |
-          curl -X GET "https://debugdiary.vercel.app/api/cron/digest" \
+          curl -X GET "https://debugdiary.vercel.app/api/cron/digest?type=morning" \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  run-evening-digest:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && contains(github.event.schedule, '30 16'))
+    steps:
+      - name: Send Evening Digest
+        run: |
+          curl -X GET "https://debugdiary.vercel.app/api/cron/digest?type=evening" \
           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

@@ -1,7 +1,9 @@
 import { prisma } from '@/lib/prisma'
 import { sendDigest } from '@/lib/digest'
 
-export async function runScheduledDigests() {
+type DigestType = 'morning' | 'evening'
+
+export async function runScheduledDigests(forceType?: DigestType | null) {
     const now = new Date()
 
     const users = await prisma.user.findMany({
@@ -17,9 +19,27 @@ export async function runScheduledDigests() {
     let sent = 0
 
     for (const user of users) {
-        const timezone = user.timezone || 'Asia/Kolkata'
+        // If forceType is provided (from cron), send that type regardless of time
+        // This bypasses the time check which fails when GitHub Actions runs late
+        if (forceType) {
+            const alreadySent = forceType === 'morning'
+                ? user.lastMorningDigest && (now.getTime() - user.lastMorningDigest.getTime()) < 60 * 60 * 1000
+                : user.lastEveningDigest && (now.getTime() - user.lastEveningDigest.getTime()) < 60 * 60 * 1000
 
-        // Get current hour in user's local timezone
+            if (!alreadySent) {
+                try {
+                    await sendDigest(user.id, forceType)
+                    sent++
+                    await new Promise(r => setTimeout(r, 500))
+                } catch (err) {
+                    console.error(`${forceType} digest failed for ${user.id}:`, err)
+                }
+            }
+            continue
+        }
+
+        // Fallback: time-based check (used if called without forceType)
+        const timezone = user.timezone || 'Asia/Kolkata'
         const localHour = parseInt(
             new Intl.DateTimeFormat('en-US', {
                 timeZone: timezone,
@@ -61,5 +81,5 @@ export async function runScheduledDigests() {
         }
     }
 
-    return { processed: users.length, sent, time: now.toISOString() }
+    return { processed: users.length, sent, time: now.toISOString(), forceType: forceType || 'time-based' }
 }

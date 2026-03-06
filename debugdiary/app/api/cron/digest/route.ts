@@ -7,7 +7,12 @@ export async function GET(req: Request) {
         return new Response('Unauthorized', { status: 401 })
     }
 
-    const result = await runScheduledDigests()
+    // Allow cron to pass type explicitly to bypass time check
+    // This is needed because GitHub Actions can delay cron by 1-2 hours
+    const { searchParams } = new URL(req.url)
+    const forceType = searchParams.get('type') as 'morning' | 'evening' | null
+
+    const result = await runScheduledDigests(forceType)
 
     return Response.json({ success: true, ...result })
 }
