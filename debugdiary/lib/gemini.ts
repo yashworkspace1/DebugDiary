@@ -80,3 +80,55 @@ export function cosineSimilarity(
 // Aliases for explicit retry wrappers
 export const enrichWithRetry = enrichEntry
 export const embedWithRetry = generateEmbedding
+
+// Analyze file context to generate before/after code diffs
+export async function analyzeFileContext(
+    fileContent: string,
+    filePath: string,
+    errorText: string,
+    stackTrace: string
+): Promise<{
+    beforeCode: string
+    afterCode: string
+    explanation: string
+    lineNumber: number | null
+} | null> {
+    try {
+        const prompt = `
+You are analyzing a JavaScript/TypeScript file that caused an error.
+
+FILE PATH: ${filePath}
+
+FILE CONTENT:
+\`\`\`
+${fileContent.substring(0, 3000)}
+\`\`\`
+
+ERROR: ${errorText}
+
+STACK TRACE:
+${stackTrace?.substring(0, 500)}
+
+Respond ONLY with valid JSON, no markdown:
+{
+  "beforeCode": "the problematic code snippet (5-15 lines around the error)",
+  "afterCode": "the fixed version of that same code snippet",
+  "explanation": "one sentence explaining what was wrong and what changed",
+  "lineNumber": the line number where error occurs or null
+}
+`
+        const result = await withRetry(() => geminiFlash.generateContent(prompt))
+        const text = result.response.text()
+
+        const clean = text
+            .replace(/```json/g, '')
+            .replace(/```/g, '')
+            .trim()
+
+        return JSON.parse(clean)
+
+    } catch (err) {
+        console.error('[DebugDiary] File analysis failed:', err)
+        return null
+    }
+}

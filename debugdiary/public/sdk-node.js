@@ -26,6 +26,7 @@ function captureError(error, context) {
         pageUrl: context.url || 'server',
         pageTitle: context.route || 'Node.js',
         appName: config.appName,
+        clientSource: 'sdk_node',
         userAgent: 'Node.js/' + process.version,
         timestamp: new Date().toISOString(),
         context: JSON.stringify({

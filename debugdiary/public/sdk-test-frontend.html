@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DebugDiary SDK — Frontend Test</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #060809;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 20px;
+      gap: 32px;
+    }
+
+    header {
+      text-align: center;
+    }
+
+    header .logo {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      color: #6b7a99;
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
+    .key-input {
+      width: 100%;
+      max-width: 540px;
+      background: #0c0f14;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+
+    .key-input label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #6b7a99;
+      margin-bottom: 8px;
+    }
+
+    .key-input input {
+      width: 100%;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 13px;
+      font-family: monospace;
+      outline: none;
+    }
+
+    .key-input input:focus {
+      border-color: #3b82f6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      width: 100%;
+      max-width: 540px;
+    }
+
+    .btn {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: #0c0f14;
+      border: 1px solid #1e2a3a;
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+      color: inherit;
+    }
+
+    .btn:hover {
+      border-color: #3b82f6;
+      background: #0f1521;
+    }
+
+    .btn .icon { font-size: 20px; }
+    .btn .title { font-size: 13px; font-weight: 700; color: #fff; margin-top: 4px; }
+    .btn .desc { font-size: 11px; color: #6b7a99; }
+
+    .btn.danger { border-color: #ff444420; }
+    .btn.danger:hover { border-color: #ff4444; background: #150f0f; }
+    .btn.orange { border-color: #ff880020; }
+    .btn.orange:hover { border-color: #ff8800; background: #150f00; }
+    .btn.green { border-color: #00cc6620; }
+    .btn.green:hover { border-color: #00cc66; background: #001f0f; }
+
+    #log {
+      width: 100%;
+      max-width: 540px;
+      background: #0c0f14;
+      border: 1px solid #1a1a1a;
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 100px;
+      max-height: 220px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 12px;
+    }
+
+    .log-entry { padding: 3px 0; border-bottom: 1px solid #111; }
+    .log-entry.ok { color: #00cc66; }
+    .log-entry.err { color: #ff6666; }
+    .log-entry.info { color: #6699ff; }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #6b7a99;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ff4444;
+    }
+    .status-dot.ready { background: #00cc66; animation: pulse 2s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">📓 DebugDiary SDK Test</div>
+    <p>Trigger errors and watch them appear in your dashboard</p>
+  </header>
+
+  <div class="key-input">
+    <label>Your API Key</label>
+    <input id="apiKeyInput" type="text" placeholder="Paste your DebugDiary API key here..." />
+  </div>
+
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">Enter API key to initialize SDK</span>
+  </div>
+
+  <div class="grid">
+    <button class="btn danger" onclick="triggerJsError()">
+      <span class="icon">💥</span>
+      <span class="title">JS Runtime Error</span>
+      <span class="desc">Calls an undefined function</span>
+    </button>
+
+    <button class="btn orange" onclick="triggerConsoleError()">
+      <span class="icon">🖨️</span>
+      <span class="title">console.error()</span>
+      <span class="desc">Logs a manual error message</span>
+    </button>
+
+    <button class="btn danger" onclick="triggerPromiseRejection()">
+      <span class="icon">🔗</span>
+      <span class="title">Promise Rejection</span>
+      <span class="desc">Unhandled async failure</span>
+    </button>
+
+    <button class="btn orange" onclick="triggerNetworkError()">
+      <span class="icon">🌐</span>
+      <span class="title">Network Error</span>
+      <span class="desc">Fetch to a broken URL</span>
+    </button>
+
+    <button class="btn green" onclick="triggerManualCapture()">
+      <span class="icon">📡</span>
+      <span class="title">Manual Capture</span>
+      <span class="desc">Uses SDK.captureError() directly</span>
+    </button>
+
+    <button class="btn danger" onclick="triggerTypeError()">
+      <span class="icon">🔢</span>
+      <span class="title">TypeError</span>
+      <span class="desc">Reads property of null</span>
+    </button>
+
+    <button class="btn green" onclick="triggerGithubContextTestFile(0)">
+      <span class="icon">🐙</span>
+      <span class="title">Context Test 1</span>
+      <span class="desc">lib/github.ts</span>
+    </button>
+    <button class="btn green" onclick="triggerGithubContextTestFile(1)">
+      <span class="icon">🐙</span>
+      <span class="title">Context Test 2</span>
+      <span class="desc">settings/github/route.ts</span>
+    </button>
+    <button class="btn green" onclick="triggerGithubContextTestFile(2)">
+      <span class="icon">🐙</span>
+      <span class="title">Context Test 3</span>
+      <span class="desc">lib/email.ts</span>
+    </button>
+    <button class="btn green" onclick="triggerGithubContextTestFile(3)">
+      <span class="icon">🐙</span>
+      <span class="title">Context Test 4</span>
+      <span class="desc">check-dejavu/route.ts</span>
+    </button>
+    <button class="btn green" onclick="triggerGithubContextTestFile(4)">
+      <span class="icon">🐙</span>
+      <span class="title">Context Test 5</span>
+      <span class="desc">entries/[id]/page.tsx</span>
+    </button
+  </div>
+
+  <div id="log">
+    <div class="log-entry info">⬆ Enter your API key and start testing...</div>
+  </div>
+
+  <!-- SDK loaded dynamically after key is entered -->
+  <script>
+    const logEl = document.getElementById('log')
+    const statusDot = document.getElementById('statusDot')
+    const statusText = document.getElementById('statusText')
+    let sdkReady = false
+
+    function addLog(msg, type = 'info') {
+      const el = document.createElement('div')
+      el.className = 'log-entry ' + type
+      el.textContent = new Date().toLocaleTimeString() + ' — ' + msg
+      logEl.prepend(el)
+    }
+
+    function loadSDK(apiKey) {
+      // Remove existing SDK script if any
+      const existing = document.getElementById('ddScript')
+      if (existing) existing.remove()
+
+      // Inject new script tag with the API key in data-key
+      const script = document.createElement('script')
+      script.id = 'ddScript'
+      script.src = 'http://localhost:3000/sdk.js'
+      script.setAttribute('data-key', apiKey)
+      script.setAttribute('data-app', 'SDK Test Page')
+      script.onload = () => {
+        statusDot.className = 'status-dot ready'
+        statusText.textContent = 'SDK ready — trigger an error!'
+        addLog('SDK initialized with key: ' + apiKey.slice(0, 8) + '...', 'ok')
+        sdkReady = true
+      }
+      script.onerror = () => addLog('Failed to load SDK script.', 'err')
+      document.body.appendChild(script)
+    }
+
+    document.getElementById('apiKeyInput').addEventListener('change', function () {
+      const key = this.value.trim()
+      if (key.length > 10) {
+        loadSDK(key)
+      }
+    })
+
+    document.getElementById('apiKeyInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        const key = this.value.trim()
+        if (key.length > 10) loadSDK(key)
+      }
+    })
+
+    function checkReady() {
+      if (!sdkReady) {
+        addLog('⚠ Enter your API key and press Enter first!', 'err')
+        return false
+      }
+      return true
+    }
+
+    function triggerJsError() {
+      if (!checkReady()) return
+      addLog('Triggering JS runtime error...', 'info')
+      setTimeout(() => { undefinedFunction() }, 100)
+    }
+
+    function triggerConsoleError() {
+      if (!checkReady()) return
+      console.error('DebugDiary SDK Test: Manual console.error triggered at ' + new Date().toISOString())
+      addLog('console.error() fired — check your dashboard!', 'ok')
+    }
+
+    function triggerPromiseRejection() {
+      if (!checkReady()) return
+      addLog('Triggering unhandled promise rejection...', 'info')
+      Promise.reject(new Error('DebugDiary SDK Test: Unhandled async failure'))
+    }
+
+    async function triggerNetworkError() {
+      if (!checkReady()) return
+      addLog('Triggering network error...', 'info')
+      try {
+        await fetch('https://this-domain-does-not-exist-debugdiary.xyz/api')
+      } catch (err) {
+        console.error('Network error: ' + err.message)
+        addLog('Network error caught and sent!', 'ok')
+      }
+    }
+
+    function triggerManualCapture() {
+      if (!checkReady()) return
+      addLog('Manual capture not available via sdk.js (use sdk-node.js for this).', 'err')
+    }
+
+    function triggerTypeError() {
+      if (!checkReady()) return
+      addLog('Triggering TypeError...', 'info')
+      setTimeout(() => {
+        const obj = null
+        console.log(obj.property)
+      }, 100)
+    }
+
+    const GITHUB_TEST_CASES = [
+      {
+        file: 'lib/github.ts',
+        line: 35,
+        col: 15,
+        error: "TypeError: Cannot read properties of undefined (reading 'replace')",
+        errorType: 'TypeError',
+        stack: `TypeError: Cannot read properties of undefined (reading 'replace')\n    at fetchFileFromGitHub (lib/github.ts:35:15)\n    at POST (app/api/sdk/capture/route.ts:245:10)`
+      },
+      {
+        file: 'app/api/settings/github/route.ts',
+        line: 31,
+        col: 20,
+        error: "ReferenceError: encrypt is not defined",
+        errorType: 'ReferenceError',
+        stack: `ReferenceError: encrypt is not defined\n    at PATCH (app/api/settings/github/route.ts:31:20)`
+      },
+      {
+        file: 'lib/email.ts',
+        line: 5,
+        col: 10,
+        error: "Error: Missing Resend API key",
+        errorType: 'Error',
+        stack: `Error: Missing Resend API key\n    at sendEmail (lib/email.ts:5:10)\n    at POST (app/api/auth/register/route.ts:55:10)`
+      },
+      {
+        file: 'app/api/entries/check-dejavu/route.ts',
+        line: 45,
+        col: 25,
+        error: "SyntaxError: Expected ',' or '}' after property value in JSON at position 120",
+        errorType: 'SyntaxError',
+        stack: `SyntaxError: Expected ',' or '}' after property value in JSON at position 120\n    at JSON.parse (<anonymous>)\n    at POST (app/api/entries/check-dejavu/route.ts:45:25)`
+      },
+      {
+        file: 'app/(app)/entries/[id]/page.tsx',
+        line: 180,
+        col: 30,
+        error: "TypeError: Cannot read properties of null (reading 'map')",
+        errorType: 'TypeError',
+        stack: `TypeError: Cannot read properties of null (reading 'map')\n    at EntryPage (app/(app)/entries/[id]/page.tsx:180:30)`
+      }
+    ]
+
+    async function triggerGithubContextTestFile(index) {
+      const apiKey = document.getElementById('apiKeyInput').value.trim()
+      if (!apiKey || apiKey.length < 10) {
+        addLog('⚠ Enter your API key first!', 'err')
+        return
+      }
+
+      const testCase = GITHUB_TEST_CASES[index]
+      addLog(`Sending fake error for ${testCase.file}...`, 'info')
+
+      try {
+        const res = await fetch('http://localhost:3000/api/sdk/capture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            apiKey: apiKey,
+            error: testCase.error,
+            stack: testCase.stack,
+            source: testCase.file,
+            line: testCase.line,
+            col: testCase.col,
+            errorType: testCase.errorType,
+            pageUrl: 'http://localhost:3000/entries',
+            pageTitle: 'Entries | DebugDiary',
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString(),
+            appName: 'DebugDiary',
+            clientSource: 'sdk_js',
+            breadcrumbs: [
+              { type: 'navigation', data: '/entries', timestamp: Date.now() - 5000 },
+              { type: 'click', data: 'Context Test Button', timestamp: Date.now() - 100 }
+            ]
+          })
+        })
+
+        const data = await res.json()
+        if (data.captured) {
+          addLog(`✅ Error captured for ${testCase.file}! Entry ID: ` + data.entryId + ' — Check dashboard (may take ~10s for AI)', 'ok')
+        } else {
+          addLog('⚠ Not captured: ' + JSON.stringify(data), 'err')
+        }
+      } catch (err) {
+        addLog('❌ Failed to send: ' + err.message, 'err')
+      }
+    }
+
+    addLog('Paste your API key above and press Enter to initialize SDK.', 'info')
+  </script>
+
+
+</body>
+</html>

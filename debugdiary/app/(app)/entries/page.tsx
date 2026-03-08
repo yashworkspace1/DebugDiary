@@ -7,12 +7,21 @@ import { Plus, Search, TerminalSquare, Globe, Sparkles, Loader2, Zap } from "luc
 import { languageColors, errorTypeColors, difficultyConfig } from "@/lib/badges"
 import { Button } from "@/components/ui/button"
 
+const VscodeIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z" />
+    </svg>
+)
+
 export default function EntriesPage() {
     const router = useRouter()
     const [entries, setEntries] = useState<any[]>([])
+    const [projects, setProjects] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     // Filters
+    const [projectFilter, setProjectFilter] = useState("")
+    const [sourceFilter, setSourceFilter] = useState("")
     const [langFilter, setLangFilter] = useState("All")
     const [typeFilter, setTypeFilter] = useState("All")
     const [sortOrder, setSortOrder] = useState("newest")
@@ -22,6 +31,8 @@ export default function EntriesPage() {
         setLoading(true)
         try {
             let url = "/api/entries?"
+            if (projectFilter) url += `projectId=${projectFilter}&`
+            if (sourceFilter) url += `source=${sourceFilter}&`
             if (langFilter !== "All") url += `lang=${langFilter.toLowerCase()}&`
             if (typeFilter !== "All") url += `tag=${typeFilter}&` // tag vs type - simple filter for now
 
@@ -36,8 +47,15 @@ export default function EntriesPage() {
     }
 
     useEffect(() => {
+        fetch('/api/projects')
+            .then(res => res.json())
+            .then(data => setProjects(data))
+            .catch(console.error)
+    }, [])
+
+    useEffect(() => {
         fetchEntries()
-    }, [langFilter, typeFilter])
+    }, [langFilter, typeFilter, projectFilter, sourceFilter])
 
     // Client-side quick search & sort
     let filteredEntries = entries.filter((e) => {
@@ -73,7 +91,7 @@ export default function EntriesPage() {
         )
     }
 
-    if (!loading && entries.length === 0 && langFilter === "All" && typeFilter === "All" && !searchQuery) {
+    if (!loading && entries.length === 0 && langFilter === "All" && typeFilter === "All" && !searchQuery && !projectFilter && !sourceFilter) {
         return (
             <div className="p-8 h-full flex flex-col items-center justify-center text-center space-y-4">
                 <div className="text-6xl mb-2">📝</div>
@@ -100,6 +118,33 @@ export default function EntriesPage() {
                 <Button asChild className="bg-blue hover:bg-blue/90 text-white rounded-lg gap-2 shadow-lg shadow-blue/20">
                     <Link href="/entries/new"><Plus className="h-4 w-4" /> New Entry</Link>
                 </Button>
+            </div>
+
+            {/* STRATEGY 2 FILTERS (Project + Source) */}
+            <div className="flex flex-col md:flex-row gap-4 mb-4">
+                <select value={projectFilter}
+                    onChange={e => setProjectFilter(e.target.value)}
+                    className="bg-surface border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none cursor-pointer flex-1"
+                >
+                    <option value="">All Projects</option>
+                    <option value="unassigned">Unassigned</option>
+                    {projects.map(p => (
+                        <option key={p.id} value={p.id}>
+                            {p.name}
+                        </option>
+                    ))}
+                </select>
+
+                <select value={sourceFilter}
+                    onChange={e => setSourceFilter(e.target.value)}
+                    className="bg-surface border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none cursor-pointer flex-1"
+                >
+                    <option value="">All Sources</option>
+                    <option value="manual">Manual</option>
+                    <option value="vscode">VS Code</option>
+                    <option value="sdk_js">JS SDK</option>
+                    <option value="sdk_node">Server SDK</option>
+                </select>
             </div>
 
             {/* FILTER ROW */}
@@ -200,6 +245,11 @@ export default function EntriesPage() {
                                                 🔁 {entry.occurrences}x
                                             </span>
                                         )}
+                                        {entry.fileContext && (
+                                            <span className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full px-2 py-0.5">
+                                                📁 File Context
+                                            </span>
+                                        )}
                                     </div>
                                     {diffStyle && (
                                         <span className="text-[10px] font-semibold flex items-center gap-1 opacity-80" style={{ color: diffStyle.color }}>
@@ -238,9 +288,43 @@ export default function EntriesPage() {
                                 </div>
 
                                 <div className="flex justify-between items-center pt-4 border-t border-white/5">
-                                    <div className="flex items-center gap-2 text-[11px] text-muted font-medium">
-                                        {entry.source === 'sdk' ? <Zap className="h-3.5 w-3.5 text-cyan-400" /> : entry.source === 'vscode' ? <TerminalSquare className="h-3.5 w-3.5 text-purple-400" /> : <Globe className="h-3.5 w-3.5 text-blue" />}
-                                        {Math.floor((Date.now() - new Date(entry.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days ago
+                                    <div className="flex items-center gap-2 text-[11px] text-muted font-medium flex-wrap">
+                                        {/* Project Badge */}
+                                        {entry.project && (
+                                            <span className="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full px-2 py-0.5 whitespace-nowrap">
+                                                📁 {entry.project.name}
+                                            </span>
+                                        )}
+                                        
+                                        {/* Source Badge */}
+                                        {entry.source === 'manual' && (
+                                            <span className="text-[10px] bg-gray-500/20 text-gray-300 border border-gray-500/30 rounded-full px-2 py-0.5 whitespace-nowrap flex items-center gap-1">
+                                                ✏️ Manual
+                                            </span>
+                                        )}
+                                        {entry.source === 'vscode' && (
+                                            <span className="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full px-2 py-0.5 whitespace-nowrap flex items-center gap-1">
+                                                <VscodeIcon className="h-3 w-3" /> VS Code
+                                            </span>
+                                        )}
+                                        {(entry.source === 'sdk_js' || entry.source === 'sdk') && (
+                                            <span className="text-[10px] bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full px-2 py-0.5 whitespace-nowrap flex items-center gap-1">
+                                                ⚡ JS SDK
+                                            </span>
+                                        )}
+                                        {entry.source === 'sdk_node' && (
+                                            <span className="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full px-2 py-0.5 whitespace-nowrap flex items-center gap-1">
+                                                ⚡ Server SDK
+                                            </span>
+                                        )}
+                                        {(!entry.source || entry.source === 'web') && (
+                                            // Handle historical unnamed entries
+                                            <span className="text-[10px] bg-slate-500/20 text-slate-300 border border-slate-500/30 rounded-full px-2 py-0.5 whitespace-nowrap flex items-center gap-1">
+                                                ✏️ Legacy Manual
+                                            </span>
+                                        )}
+
+                                        <span>{Math.floor((Date.now() - new Date(entry.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days ago</span>
                                     </div>
 
                                     {entry.aiEnriched ? (

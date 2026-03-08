@@ -140,6 +140,18 @@ export async function GET(req: Request) {
         }
     })
 
+    const projectStatsRaw = await prisma.project.findMany({
+        where: { userId: user.id },
+        include: {
+            _count: { select: { entries: true } }
+        }
+    })
+    
+    const projectStats = projectStatsRaw.map((p: any) => ({
+        name: p.name,
+        count: p._count.entries
+    }))
+
     return NextResponse.json({
         stats: {
             total: entries.length,
@@ -155,7 +167,8 @@ export async function GET(req: Request) {
         byErrorType,
         recentEntries,
         activityGrid,
-        mostRecurring
+        mostRecurring,
+        projectStats
     }, {
         headers: {
             'Cache-Control': 'no-store, no-cache, must-revalidate'

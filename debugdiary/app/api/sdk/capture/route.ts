@@ -1,7 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-import { enrichEntry, generateEmbedding } from '@/lib/gemini'
+import { enrichEntry, generateEmbedding, analyzeFileContext } from '@/lib/gemini'
 import { checkRateLimit } from '@/lib/rateLimit'
+import { hashApiKey } from '@/lib/encryption'
+import { sanitizeEntry } from '@/lib/sanitize'
+import { fetchFileFromGitHub, extractFilePathFromStack } from '@/lib/github'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -61,25 +64,47 @@ export async function POST(req: Request) {
             apiKey, error, stack, source,
             line, col, errorType, pageUrl,
             pageTitle, userAgent, timestamp,
-            appName, breadcrumbs
+            appName, breadcrumbs, clientSource
         } = await req.json()
+
 
         if (!apiKey || !error) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400, headers: corsHeaders })
         }
 
-        // Validate API key
-        const keyRecord = await prisma.apiKey.findUnique({
-            where: { key: apiKey },
-            include: { user: true }
+        const sanitized = sanitizeEntry({
+            errorText: error,
+            stackTrace: stack,
+            appName: appName,
+            pageTitle: pageTitle
         })
+
+        const safeError = sanitized.errorText || error
+        const safeStack = sanitized.stackTrace || stack
+        const safeAppName = sanitized.appName || appName
+        const safePageTitle = sanitized.pageTitle || pageTitle
+
+        // Validate API key - Check hash first, fallback to plaintext for older legacy keys
+        const hashedKey = hashApiKey(apiKey)
+        let keyRecord = await prisma.apiKey.findUnique({
+            where: { key: hashedKey },
+            include: { user: true, project: true }
+        })
+
+        if (!keyRecord) {
+            keyRecord = await prisma.apiKey.findUnique({
+                where: { key: apiKey },
+                include: { user: true, project: true }
+            })
+        }
+
 
         if (!keyRecord) {
             return NextResponse.json({ error: 'Invalid API key' }, { status: 401, headers: corsHeaders })
         }
 
         // Rate limit check (100 errors/hour per key, 10 identical errors/hour)
-        const rateCheck = checkRateLimit(apiKey, error)
+        const rateCheck = checkRateLimit(apiKey, safeError)
         if (!rateCheck.allowed) {
             return NextResponse.json(
                 { captured: false, reason: rateCheck.reason },
@@ -121,7 +146,7 @@ export async function POST(req: Request) {
             }
         })
 
-        const matchingEntry = existingEntries.find((e: any) => isSameError(e.errorText, error))
+        const matchingEntry = existingEntries.find((e: any) => isSameError(e.errorText, safeError))
 
         // If match found → update existing entry
         if (matchingEntry) {
@@ -157,18 +182,20 @@ export async function POST(req: Request) {
         }
 
         // No match → create new entry
-        const parsed = parseStack(stack, source, line)
+        const parsed = parseStack(safeStack, source, line)
 
         const entry = await prisma.entry.create({
             data: {
                 userId: keyRecord.userId,
-                errorText: error.substring(0, 1000),
-                fixText: buildFixHint(error),
-                codeSnippet: stack ? stack.substring(0, 500) : null,
+                projectId: keyRecord.projectId || null,
+                errorText: safeError.substring(0, 1000),
+                fixText: buildFixHint(safeError),
+                codeSnippet: safeStack ? safeStack.substring(0, 500) : null,
+
                 context: JSON.stringify({
-                    appName: appName || 'Unknown App',
+                    appName: safeAppName || 'Unknown App',
                     pageUrl,
-                    pageTitle,
+                    pageTitle: safePageTitle,
                     userAgent,
                     source: parsed.fileName || source,
                     line: parsed.lineNumber || line,
@@ -178,8 +205,9 @@ export async function POST(req: Request) {
                     sdkErrorType: errorType,
                     breadcrumbs: breadcrumbs || []
                 }),
-                source: 'sdk',
-                errorType: detectErrorType(error),
+                source: clientSource || 'sdk_js',
+                errorType: detectErrorType(safeError),
+
                 aiEnriched: false,
                 language: 'javascript',
                 tags: [],
@@ -193,21 +221,61 @@ export async function POST(req: Request) {
             ; (async () => {
                 try {
                     const enriched = await enrichEntry(
-                        error,
-                        buildFixHint(error),
-                        stack?.substring(0, 500)
+                        safeError,
+                        buildFixHint(safeError),
+                        safeStack?.substring(0, 500)
                     )
 
                     const embedding = await generateEmbedding(
-                        error + ' ' + buildFixHint(error)
+                        safeError + ' ' + buildFixHint(safeError)
                     )
+
+                    // Fetch file context from GitHub
+                    let fileContext = null
+
+                    const userPAT = await prisma.user.findUnique({
+                        where: { id: keyRecord.userId },
+                        select: { githubPAT: true }
+                    })
+
+                    const projectRepo = keyRecord.project?.githubRepo
+
+                    if (projectRepo && safeStack) {
+                        const filePath = extractFilePathFromStack(safeStack)
+
+                        if (filePath) {
+                            const file = await fetchFileFromGitHub(
+                                projectRepo,
+                                filePath,
+                                userPAT?.githubPAT
+                            )
+
+                            if (file) {
+                                const diff = await analyzeFileContext(
+                                    file.content,
+                                    file.path,
+                                    safeError,
+                                    safeStack
+                                )
+
+                                if (diff) {
+                                    fileContext = JSON.stringify({
+                                        ...diff,
+                                        filePath: file.path,
+                                        fileUrl: file.url
+                                    })
+                                }
+                            }
+                        }
+                    }
 
                     await prisma.entry.update({
                         where: { id: entry.id },
                         data: {
                             ...enriched,
                             embedding,
-                            aiEnriched: true
+                            aiEnriched: true,
+                            ...(fileContext ? { fileContext } : {})
                         }
                     })
                 } catch (err) {

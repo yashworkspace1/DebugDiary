@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
-import { Loader2, AlertTriangle, Save, LogOut } from "lucide-react"
+import { Loader2, AlertTriangle, Save, LogOut, Eye, EyeOff, Github, Trash2, Lock } from "lucide-react"
 
 const LANGUAGES = [
     "JavaScript", "TypeScript", "Python", "React", "Node.js", "Java",
@@ -34,6 +34,13 @@ export default function SettingsPage() {
     // Digest State
     const [emailAlerts, setEmailAlerts] = useState(true)
     const [timezone, setTimezone] = useState("Asia/Kolkata")
+
+    // GitHub Integration State
+    const [githubPAT, setGithubPAT] = useState("")
+    const [showPAT, setShowPAT] = useState(false)
+    const [savingGithub, setSavingGithub] = useState(false)
+    const [githubMessage, setGithubMessage] = useState("")
+    const [githubConnected, setGithubConnected] = useState(false)
 
     useEffect(() => {
         if (session?.user?.name) setName(session.user.name)
@@ -70,6 +77,17 @@ export default function SettingsPage() {
                 if (data) {
                     setEmailAlerts(data.emailAlerts)
                     setTimezone(data.timezone)
+                }
+            })
+            .catch(() => { })
+
+        // Fetch GitHub settings
+        fetch('/api/settings/github')
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (data) {
+                    setGithubPAT(data.githubPAT || '')
+                    setGithubConnected(!!data.githubPAT)
                 }
             })
             .catch(() => { })
@@ -325,6 +343,118 @@ export default function SettingsPage() {
                             <option value="Australia/Sydney">AEST — Sydney (UTC+10)</option>
                             <option value="UTC">UTC</option>
                         </select>
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION: GITHUB INTEGRATION */}
+            <section className="space-y-6">
+                <h3 className="text-sm font-bold text-muted uppercase tracking-wider mb-4 border-b border-white/5 pb-2">GitHub Integration</h3>
+
+                <div className="bg-[#0c0f14] border border-white/5 rounded-2xl p-6 space-y-6">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                                    <Github className="w-5 h-5 text-white/70" />
+                                </div>
+                                <div>
+                                    <h4 className="text-white font-semibold">Global Personal Access Token</h4>
+                                    <p className="text-xs text-muted">A Personal Access Token (PAT) identifies you to GitHub. It allows DebugDiary to fetch exact code context across all your connected projects.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
+                            githubConnected
+                                ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                                : 'bg-white/5 border-white/10 text-muted'
+                        }`}>
+                            {githubConnected ? '✅ Saved' : 'No Token'}
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-[#6b7a99] uppercase tracking-wider">GitHub Personal Access Token</label>
+                            <div className="relative">
+                                <input
+                                    type={showPAT ? 'text' : 'password'}
+                                    value={githubPAT}
+                                    onChange={(e) => setGithubPAT(e.target.value)}
+                                    placeholder="ghp_xxxxxxxxxxxx"
+                                    className="w-full bg-bg/50 border border-border rounded-xl px-4 py-3 pr-12 text-sm text-text placeholder-muted focus:outline-none focus:ring-1 focus:ring-blue/50 focus:border-blue/50 transition-all font-medium"
+                                />
+                                <button
+                                    onClick={() => setShowPAT(!showPAT)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors"
+                                >
+                                    {showPAT ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
+                            <p className="text-[11px] text-muted">Required for accessing private repositories and making automated PRs. GitHub → Settings → Developer Settings → Fine-grained tokens → Contents: Read & Write</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-emerald-400/80 bg-emerald-500/5 border border-emerald-500/10 rounded-lg px-3 py-2">
+                        <Lock className="w-3.5 h-3.5 shrink-0" />
+                        Your token is encrypted with AES-256 before storage. Never readable after saving.
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                        <button
+                            onClick={async () => {
+                                setSavingGithub(true)
+                                setGithubMessage('')
+                                try {
+                                    const res = await fetch('/api/settings/github', {
+                                        method: 'PATCH',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ githubPAT })
+                                    })
+                                    if (res.ok) {
+                                        setGithubMessage('GitHub token securely saved!')
+                                        setGithubConnected(true)
+                                        // Reload to get masked PAT
+                                        const data = await fetch('/api/settings/github').then(r => r.json())
+                                        setGithubPAT(data.githubPAT || '')
+                                        setTimeout(() => setGithubMessage(''), 3000)
+                                    } else {
+                                        const err = await res.json()
+                                        setGithubMessage(err.error || 'Failed to save')
+                                    }
+                                } catch {
+                                    setGithubMessage('Error saving settings')
+                                } finally {
+                                    setSavingGithub(false)
+                                }
+                            }}
+                            disabled={savingGithub || !githubPAT}
+                            className="bg-blue hover:bg-blue/90 text-white font-medium py-2 px-6 rounded-lg text-sm transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {savingGithub ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                            Save
+                        </button>
+
+                        {githubConnected && (
+                            <button
+                                onClick={async () => {
+                                    await fetch('/api/settings/github', { method: 'DELETE' })
+                                    setGithubPAT('')
+                                    setGithubConnected(false)
+                                    setGithubMessage('GitHub token removed')
+                                    setTimeout(() => setGithubMessage(''), 3000)
+                                }}
+                                className="text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 font-medium py-2 px-4 rounded-lg text-sm transition-all flex items-center gap-2"
+                            >
+                                <Trash2 className="h-4 w-4" /> Remove
+                            </button>
+                        )}
+
+                        {githubMessage && (
+                            <span className={`text-sm animate-in fade-in ${githubMessage.includes('saved') || githubMessage.includes('removed') ? 'text-green-400' : 'text-red-400'}`}>
+                                {githubMessage}
+                            </span>
+                        )}
                     </div>
                 </div>
             </section>

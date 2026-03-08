@@ -30,7 +30,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             occurrences: true,
             affectedUrls: true,
             firstSeenAt: true,
-            lastSeenAt: true
+            lastSeenAt: true,
+            fileContext: true,
+            project: { select: { id: true, name: true } }
         }
     })
 

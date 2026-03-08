@@ -21,12 +21,30 @@ model User {
   sessions      Session[]
   entries       Entry[]
   apiKeys       ApiKey[]
+  projects      Project[]
 
   // Email Digest
   emailAlerts        Boolean   @default(true)
   timezone           String    @default("Asia/Kolkata")
   lastMorningDigest  DateTime?
   lastEveningDigest  DateTime?
+
+  // GitHub Integration
+  githubPAT          String?
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKeys   ApiKey[]
+  entries   Entry[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // GitHub Integration
+  githubRepo String?
 }
 
 model Account {
@@ -57,12 +75,16 @@ model Session {
 model Entry {
   id           String   @id @default(cuid())
   userId       String
+  projectId    String?
 
   // Raw user input
   errorText    String
   fixText      String
   codeSnippet  String?
   context      String?  // project name or notes
+
+  // GitHub file context (AI-generated before/after diff)
+  fileContext  String?
 
   // AI enriched
   summary      String?
@@ -91,6 +113,7 @@ model Entry {
   updatedAt    DateTime @updatedAt
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project      Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 }
 
 model ApiKey {
@@ -99,6 +122,8 @@ model ApiKey {
   key       String    @unique @default(cuid())
   label     String    @default("VS Code Extension")
   lastUsed  DateTime?
+  projectId String?
   createdAt DateTime  @default(now())
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
 }

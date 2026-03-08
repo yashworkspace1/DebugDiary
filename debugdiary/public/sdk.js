@@ -154,6 +154,7 @@
             userAgent: navigator.userAgent,
             timestamp: new Date().toISOString(),
             appName: appName,
+            clientSource: 'sdk_js',
             breadcrumbs: breadcrumbsWithRelativeTime
         };
 

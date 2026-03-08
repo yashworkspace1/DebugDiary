@@ -23,7 +23,8 @@ export async function POST(req: Request) {
         const queryEmbedding = await generateEmbedding(errorText)
 
         const entries = await prisma.entry.findMany({
-            where: { userId: user.id }
+            where: { userId: user.id },
+            include: { project: true }
         })
 
         let bestMatch = null
@@ -40,7 +41,12 @@ export async function POST(req: Request) {
         })
 
         if (bestMatch && highestScore > 0.75) {
-            return Response.json({ match: bestMatch, similarity: highestScore })
+            const matchRecord = bestMatch as any
+            const matchWithProjectData = { 
+                ...matchRecord, 
+                projectName: matchRecord.project?.name || null 
+            }
+            return Response.json({ match: matchWithProjectData, similarity: highestScore })
         }
 
         return Response.json({ match: null })

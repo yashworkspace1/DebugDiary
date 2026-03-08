@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
+import { generateApiKey } from '@/lib/encryption'
 
 export async function GET(req: Request) {
     const session = await getServerSession()
@@ -10,6 +11,7 @@ export async function GET(req: Request) {
 
     const keys = await prisma.apiKey.findMany({
         where: { userId: user.id },
+        include: { project: true },
         orderBy: { createdAt: 'desc' }
     })
 
@@ -23,13 +25,20 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({ where: { email: session.user.email } })
     if (!user) return new Response('Unauthorized', { status: 401 })
 
-    const { label } = await req.json()
+    const { label, projectId } = await req.json()
+
+    const { plain, hashed } = generateApiKey()
 
     const apiKey = await prisma.apiKey.create({
-        data: { userId: user.id, label: label || 'VS Code Extension' }
+        data: { 
+            userId: user.id, 
+            label: label || 'VS Code Extension',
+            projectId: projectId || null,
+            key: hashed
+        }
     })
 
-    return Response.json(apiKey)
+    return Response.json({ ...apiKey, key: plain })
 }
 
 export async function DELETE(req: Request) {

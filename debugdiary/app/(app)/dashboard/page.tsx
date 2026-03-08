@@ -280,6 +280,34 @@ export default function DashboardPage() {
                         </div>
                     )}
                 </div>
+
+                {/* PROJECT STATS (Full Width Bar Chart) */}
+                <div className="lg:col-span-12 xl:col-span-12 bg-[#0c0f14] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors mt-0 lg:mt-0 xl:mt-0">
+                    <h3 className="font-semibold text-lg text-text">Errors by Project</h3>
+                    <p className="text-sm text-muted mb-4">Error spread across different spaces</p>
+
+                    {!data.projectStats || data.projectStats.length === 0 ? (
+                        <div className="h-[250px] flex items-center justify-center text-muted text-sm border border-white/5 border-dashed rounded-xl">No projects created yet</div>
+                    ) : (
+                        <div className="h-[250px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={data.projectStats}
+                                    margin={{ top: 20, right: 30, left: 10, bottom: 0 }}
+                                >
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} />
+                                    <YAxis type="number" hide />
+                                    <RechartsTooltip cursor={{ fill: 'rgba(255,255,255,0.02)' }} content={<CustomTooltip />} />
+                                    <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={40}>
+                                        {data.projectStats.map((entry: any, index: number) => (
+                                            <Cell key={`cell-${index}`} fill={'#a855f7'} /> // Purple color to match the folder icon theme
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* ROW 3: RECENT & INSIGHT */}

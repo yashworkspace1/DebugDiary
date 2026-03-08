@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Trash2, Edit2, Copy, Sparkles, Loader2, Globe, TerminalSquare, Zap, X } from "lucide-react"
+import { ArrowLeft, Trash2, Edit2, Copy, Sparkles, Loader2, Globe, TerminalSquare, Zap, X, ExternalLink } from "lucide-react"
 import { useToast } from "@/components/Toast"
 import { useEnrichmentPoller } from "@/hooks/useEnrichmentPoller"
 import { languageColors, errorTypeColors, difficultyConfig } from "@/lib/badges"
@@ -11,6 +11,12 @@ import CodeMirror from '@uiw/react-codemirror'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { javascript } from '@codemirror/lang-javascript'
 import * as Dialog from '@radix-ui/react-dialog'
+
+const VscodeIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z" />
+    </svg>
+)
 
 export default function EntryDetailPage() {
     const params = useParams()
@@ -90,6 +96,17 @@ export default function EntryDetailPage() {
     const errorColor = entry.errorType ? (errorTypeColors[entry.errorType] || errorTypeColors.Other) : errorTypeColors.Other
     const diffStyle = entry.difficulty ? (difficultyConfig[entry.difficulty.toLowerCase()] || difficultyConfig.medium) : null
 
+    // Parse fileContext if available
+    const fileContext = entry.fileContext
+        ? (() => {
+            try {
+                return JSON.parse(entry.fileContext)
+            } catch {
+                return null
+            }
+        })()
+        : null
+
     return (
         <div className="p-6 md:p-8 max-w-6xl mx-auto min-h-full">
 
@@ -106,14 +123,14 @@ export default function EntryDetailPage() {
 
                     <div className="flex items-center gap-3 shrink-0">
                         <span className="text-sm text-muted">{formattedDate}</span>
-                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${entry.source === 'sdk'
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${entry.source?.startsWith('sdk')
                             ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
                             : entry.source === 'vscode'
                                 ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
                                 : 'bg-blue/10 text-blue border-blue/20'
                             }`}>
-                            {entry.source === 'sdk' ? <Zap className="h-3 w-3" /> : entry.source === 'vscode' ? <TerminalSquare className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
-                            {entry.source === 'sdk' ? 'SDK Auto' : entry.source === 'vscode' ? 'VS Code' : 'Web'}
+                            {entry.source?.startsWith('sdk') ? <Zap className="h-3 w-3" /> : entry.source === 'vscode' ? <VscodeIcon className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
+                            {(entry.source === 'sdk' || entry.source === 'sdk_js') ? 'JS SDK' : entry.source === 'sdk_node' ? 'Server SDK' : entry.source === 'vscode' ? 'VS Code' : 'Web Menu'}
                         </div>
                     </div>
                 </div>
@@ -248,6 +265,95 @@ export default function EntryDetailPage() {
                         </div>
                     )}
 
+                    {/* Affected Files Section */}
+                    {fileContext && (
+                        <div className="mt-6 space-y-4">
+
+                            {/* Header */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-purple-400 text-lg">📁</span>
+                                <h3 className="text-white font-syne font-bold text-lg">Affected Files</h3>
+                                <span className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full px-2 py-0.5">AI Generated</span>
+                            </div>
+
+                            {/* File Info Card */}
+                            <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
+                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-white/40 text-xs uppercase tracking-wider">FILE</span>
+                                        <code className="text-blue-400 text-sm font-mono">{fileContext.filePath}</code>
+                                        {fileContext.lineNumber && (
+                                            <span className="text-xs bg-orange-500/20 text-orange-300 border border-orange-500/30 rounded-full px-2 py-0.5">
+                                                line {fileContext.lineNumber}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {fileContext.fileUrl && (
+                                        <a
+                                            href={fileContext.fileUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 border border-blue-500/30 rounded-lg px-3 py-1.5"
+                                        >
+                                            <ExternalLink className="h-3 w-3" /> View on GitHub
+                                        </a>
+                                    )}
+                                </div>
+
+                                {fileContext.explanation && (
+                                    <p className="text-white/60 text-sm mt-3 pt-3 border-t border-white/5 leading-relaxed">
+                                        💡 {fileContext.explanation}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Before / After Code Diff */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                {/* Before — Buggy Code */}
+                                {fileContext.beforeCode && (
+                                    <div className="bg-red-500/5 border border-red-500/20 rounded-2xl overflow-hidden">
+                                        <div className="flex items-center gap-2 px-4 py-3 border-b border-red-500/20 bg-red-500/5">
+                                            <div className="w-2 h-2 rounded-full bg-red-400" />
+                                            <span className="text-red-400 text-xs font-medium uppercase tracking-wider">Before — Buggy Code</span>
+                                        </div>
+                                        <pre className="p-4 text-xs text-red-200/80 overflow-x-auto font-mono leading-relaxed max-h-64">
+                                            <code>{fileContext.beforeCode}</code>
+                                        </pre>
+                                    </div>
+                                )}
+
+                                {/* After — Fixed Code */}
+                                {fileContext.afterCode && (
+                                    <div className="bg-green-500/5 border border-green-500/20 rounded-2xl overflow-hidden">
+                                        <div className="flex items-center gap-2 px-4 py-3 border-b border-green-500/20 bg-green-500/5">
+                                            <div className="w-2 h-2 rounded-full bg-green-400" />
+                                            <span className="text-green-400 text-xs font-medium uppercase tracking-wider">After — Fixed Code</span>
+                                        </div>
+                                        <pre className="p-4 text-xs text-green-200/80 overflow-x-auto font-mono leading-relaxed max-h-64">
+                                            <code>{fileContext.afterCode}</code>
+                                        </pre>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Pending state — has stack but no fileContext yet */}
+                    {entry.codeSnippet && !fileContext && entry.aiEnriched && (
+                        <div className="mt-6 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                            <div>
+                                <p className="text-white/60 text-sm">File context not available</p>
+                                <p className="text-white/30 text-xs mt-0.5">Link a GitHub repo to this entry's project to see before/after code diffs</p>
+                            </div>
+                            <a href="/settings/projects" className="ml-auto text-xs text-purple-400 hover:text-purple-300 border border-purple-500/30 rounded-lg px-3 py-1.5">
+                                Edit Project →
+                            </a>
+                        </div>
+                    )}
+
                 </div>
 
                 {/* RIGHT COLUMN (40%) */}
@@ -304,27 +410,47 @@ export default function EntryDetailPage() {
                             </div>
 
                             {/* Context */}
-                            {entry.source === 'sdk' && entry.context ? (() => {
+                            {((entry.source?.startsWith('sdk') || entry.source === 'vscode' || entry.source === 'manual' || entry.source === 'web' || !entry.source)) && entry.context ? (() => {
                                 let ctx: any = null
                                 try { ctx = JSON.parse(entry.context) } catch { }
                                 if (!ctx) return null
+
+                                const isManual = entry.source === 'manual' || entry.source === 'web' || !entry.source;
+                                
                                 return (
                                     <div className="space-y-4">
-                                        <div className="bg-cyan-500/5 border border-cyan-500/15 rounded-xl p-5">
+                                        <div className={`border rounded-xl p-5 ${
+                                            entry.source === 'vscode' ? 'bg-purple-500/5 border-purple-500/15' : 
+                                            isManual ? 'bg-slate-500/5 border-slate-500/15' : 'bg-cyan-500/5 border-cyan-500/15'
+                                        }`}>
                                             <div className="flex items-center gap-2 mb-4">
-                                                <Zap className="h-4 w-4 text-cyan-400" />
-                                                <h4 className="text-sm font-bold text-white">Auto Captured</h4>
-                                                <span className="ml-auto text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full font-semibold">SDK</span>
+                                                {entry.source === 'vscode' ? <VscodeIcon className="h-4 w-4 text-purple-400" /> : 
+                                                 isManual ? <Globe className="h-4 w-4 text-slate-400" /> : <Zap className="h-4 w-4 text-cyan-400" />}
+                                                <h4 className="text-sm font-bold text-white">{isManual ? 'Manual Entry' : 'Auto Captured'}</h4>
+                                                <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                                                    entry.source === 'vscode' ? 'bg-purple-500/20 text-purple-300' : 
+                                                    isManual ? 'bg-slate-500/20 text-slate-300' : 'bg-cyan-500/20 text-cyan-300'
+                                                }`}>
+                                                    {entry.source === 'sdk_node' ? 'SERVER SDK' : 
+                                                     entry.source === 'vscode' ? 'VS CODE' : 
+                                                     isManual ? 'MANUAL' : 'SDK'}
+                                                </span>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                                <div>
-                                                    <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Application</p>
-                                                    <p className="text-white font-medium">{ctx.appName}</p>
+                                            
+                                            {isManual ? (
+                                                <div className="text-sm text-slate-300 font-mono whitespace-pre-wrap overflow-x-auto p-3 bg-white/5 rounded-lg border border-white/10">
+                                                    {JSON.stringify(ctx, null, 2)}
                                                 </div>
-                                                <div>
-                                                    <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Page</p>
-                                                    <p className="text-white/70 truncate text-xs">{ctx.pageTitle || ctx.pageUrl}</p>
-                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                                    <div>
+                                                        <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Application</p>
+                                                        <p className="text-white font-medium">{ctx.appName}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Page</p>
+                                                        <p className="text-white/70 truncate text-xs">{ctx.pageTitle || ctx.pageUrl}</p>
+                                                    </div>
                                                 <div>
                                                     <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">File</p>
                                                     <p className="text-white/70 font-mono text-xs truncate">{ctx.source}:{ctx.line}</p>
@@ -340,6 +466,7 @@ export default function EntryDetailPage() {
                                                     </div>
                                                 )}
                                             </div>
+                                            )}
                                         </div>
 
                                         {/* USER JOURNEY BREADCRUMBS */}

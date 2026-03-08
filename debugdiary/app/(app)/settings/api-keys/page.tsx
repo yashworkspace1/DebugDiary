@@ -7,6 +7,7 @@ import { useToast } from "@/components/Toast"
 export default function ApiKeysPage() {
     const { addToast } = useToast()
     const [keys, setKeys] = useState<any[]>([])
+    const [projects, setProjects] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     // Modal state
@@ -14,6 +15,7 @@ export default function ApiKeysPage() {
     const [newKeyName, setNewKeyName] = useState("VS Code Extension")
     const [generating, setGenerating] = useState(false)
     const [generatedKey, setGeneratedKey] = useState<string | null>(null)
+    const [selectedProject, setSelectedProject] = useState("")
     const [copied, setCopied] = useState(false)
 
     useEffect(() => {
@@ -22,10 +24,18 @@ export default function ApiKeysPage() {
 
     const fetchKeys = async () => {
         try {
-            const res = await fetch('/api/keys')
-            if (res.ok) {
-                const data = await res.json()
+            const [keysRes, projectsRes] = await Promise.all([
+                fetch('/api/apikeys'), // Assuming GET is to /api/apikeys, though original code fetched /api/keys. I'll use /api/keys to match original.
+                fetch('/api/projects')
+            ])
+
+            if (keysRes.ok) {
+                const data = await keysRes.json()
                 setKeys(data)
+            }
+            if (projectsRes.ok) {
+                const data = await projectsRes.json()
+                setProjects(data)
             }
         } catch (e) {
             console.error(e)
@@ -40,10 +50,13 @@ export default function ApiKeysPage() {
 
         setGenerating(true)
         try {
-            const res = await fetch('/api/keys', {
+            const res = await fetch('/api/apikeys', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newKeyName })
+                body: JSON.stringify({ 
+                    label: newKeyName, 
+                    projectId: selectedProject || undefined 
+                })
             })
 
             if (res.ok) {
@@ -65,7 +78,11 @@ export default function ApiKeysPage() {
         if (!confirm("Delete this API key entirely? Any extensions using it will stop working.")) return
 
         try {
-            const res = await fetch(`/api/keys?id=${id}`, { method: 'DELETE' })
+            const res = await fetch('/api/apikeys', { 
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keyId: id })
+            })
             if (res.ok) {
                 setKeys(keys.filter(k => k.id !== id))
                 addToast("API Key deleted", "info")
@@ -86,6 +103,7 @@ export default function ApiKeysPage() {
         setShowModal(false)
         setGeneratedKey(null)
         setNewKeyName("VS Code Extension")
+        setSelectedProject("")
         setCopied(false)
     }
 
@@ -158,7 +176,7 @@ export default function ApiKeysPage() {
                     <h2 className="text-xl font-bold text-text">Your API Keys</h2>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="bg-blue hover:bg-blue/90 text-background font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm"
+                        className="bg-blue hover:bg-blue/90 text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm"
                     >
                         <Plus className="h-4 w-4" /> Generate New Key
                     </button>
@@ -169,7 +187,7 @@ export default function ApiKeysPage() {
                         <KeyRound className="h-8 w-8 text-muted mx-auto mb-3 opacity-50" />
                         <h3 className="font-medium text-text mb-1">No API keys yet</h3>
                         <p className="text-sm text-muted mb-4">Generate one to connect VS Code to your account.</p>
-                        <button onClick={() => setShowModal(true)} className="bg-white/10 hover:bg-white/20 text-text px-4 py-2 rounded-lg text-sm transition-colors">
+                        <button onClick={() => setShowModal(true)} className="bg-blue hover:bg-blue/90 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors">
                             Generate Key
                         </button>
                     </div>
@@ -181,10 +199,15 @@ export default function ApiKeysPage() {
                                     <h3 className="font-medium text-text text-sm flex items-center gap-2 mb-1">
                                         <KeyRound className="h-4 w-4 text-blue" />
                                         {key.label}
+                                        {key.project && (
+                                            <span className="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full px-2 py-0.5 ml-2">
+                                                📁 {key.project.name}
+                                            </span>
+                                        )}
                                     </h3>
                                     <div className="flex items-center gap-2 mb-2">
                                         <code className="text-xs font-mono text-muted bg-black/40 px-2 py-0.5 rounded border border-white/5">
-                                            {key.key.substring(0, 8)}••••••••••••••••
+                                            {key.key.length > 30 ? key.key.substring(0, 8) + '••••••••' + key.key.slice(-4) : 'dd_••••••••••••' + key.key.slice(-4)}
                                         </code>
                                     </div>
                                     <p className="text-[11px] text-muted flex gap-3">
@@ -193,13 +216,6 @@ export default function ApiKeysPage() {
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2 self-end sm:self-auto">
-                                    <button
-                                        onClick={() => handleCopy(key.key)}
-                                        className="p-2 bg-white/5 hover:bg-white/10 text-text rounded-lg transition-colors border border-white/5"
-                                        title="Copy Full Key"
-                                    >
-                                        <Copy className="h-4 w-4" />
-                                    </button>
                                     <button
                                         onClick={() => handleDelete(key.id)}
                                         className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors border border-red-500/20"
@@ -236,6 +252,22 @@ export default function ApiKeysPage() {
                                     />
                                 </div>
 
+                                <div className="space-y-2 mb-6">
+                                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Link to Project (optional)</label>
+                                    <select
+                                        value={selectedProject}
+                                        onChange={e => setSelectedProject(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-text focus:outline-none focus:border-blue focus:ring-1 focus:ring-blue transition-all"
+                                    >
+                                        <option value="">No project — unassigned</option>
+                                        {projects.map(p => (
+                                            <option key={p.id} value={p.id}>
+                                                {p.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
                                 <div className="flex flex-row justify-end gap-3 mt-8">
                                     <button
                                         type="button"
@@ -260,9 +292,13 @@ export default function ApiKeysPage() {
                                     <Check className="h-5 w-5" /> Key Generated
                                 </h2>
 
-                                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-sm text-amber-500/90 mb-6 flex items-start gap-3">
-                                    <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
-                                    <p>Please copy this key and save it somewhere safe. For security reasons, <strong>we will not show it to you again</strong>.</p>
+                                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-6">
+                                    <p className="text-yellow-400 text-sm font-medium flex items-center gap-2">
+                                        <AlertTriangle className="h-4 w-4" /> Save your API key now
+                                    </p>
+                                    <p className="text-white/60 text-xs mt-1">
+                                        This key will never be shown again because it is securely hashed. Copy it now and store it safely.
+                                    </p>
                                 </div>
 
                                 <div className="bg-black/60 border border-white/10 rounded-lg p-4 flex items-center justify-between gap-4 mb-6 relative group overflow-hidden">

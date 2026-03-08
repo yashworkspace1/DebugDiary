@@ -187,9 +187,17 @@ export default function DejavuPage() {
                                     </span>
                                 )}
                             </div>
-                            <Link href={`/entries/${result.match.id}`} className="text-sm bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 text-white">
-                                View Full Entry <ArrowRight className="h-4 w-4" />
-                            </Link>
+                            
+                            <div className="flex gap-2">
+                                {result.match.projectName && (
+                                    <span className="text-[11px] bg-purple-500/10 border border-purple-500/20 px-2 py-1 rounded-md text-purple-300 font-medium flex items-center gap-1.5 h-fit">
+                                        📁 {result.match.projectName}
+                                    </span>
+                                )}
+                                <Link href={`/entries/${result.match.id}`} className="text-sm bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 text-white">
+                                    View Full Entry <ArrowRight className="h-4 w-4" />
+                                </Link>
+                            </div>
                         </div>
                     </div>
 

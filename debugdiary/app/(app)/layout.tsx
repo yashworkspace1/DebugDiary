@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, List, Plus, Search, Zap, Key, Settings, LogOut } from "lucide-react"
+import { LayoutDashboard, List, Plus, Search, Zap, Key, Settings, LogOut, Folder } from "lucide-react"
 import { signOut, useSession } from "next-auth/react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
@@ -148,6 +148,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                         API Keys
                                     </div>
                                     <span className="text-[9px] font-bold uppercase tracking-wider border border-white/10 bg-white/5 py-0.5 px-1.5 rounded text-white/40">VS Code</span>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href="/settings/projects"
+                                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isCurrent("/settings/projects")
+                                        ? "bg-blue/10 border-l-2 border-blue text-white"
+                                        : "text-[#6b7a99] hover:text-white hover:bg-white/[0.03] border-l-2 border-transparent"
+                                        }`}
+                                >
+                                    <Folder className="h-4 w-4" />
+                                    Projects
                                 </Link>
                             </li>
                             <li>
